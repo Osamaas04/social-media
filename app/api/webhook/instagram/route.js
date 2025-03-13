@@ -70,7 +70,7 @@ export async function POST(request) {
     // }
 
     return NextResponse.json(
-      { message: "Message has been queued successfully" }, 
+      { message: "Message has been queued successfully", body }, 
       { status: 200 }
     );
 
