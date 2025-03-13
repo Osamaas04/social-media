@@ -25,52 +25,47 @@ export async function GET(request) {
 export async function POST(request) {
   try {
     const body = await request.json();
+    const entries = body.entry;
 
-    
+    await dbConnect();
 
-
-    console.log(body)
-    // const entries = body.entry;
-
-    // await dbConnect();
-
-    // for (const entry of entries) {
-    //   const messagingEvents = entry.messaging;
+    for (const entry of entries) {
+      const messagingEvents = entry.messaging;
       
-    //   for (const event of messagingEvents) {
-    //     const message = event.message;
-    //     const senderId = event.sender.id;
-    //     const recipientId = event.recipient.id;
-    //     const timestamp = event.timestamp;
+      for (const event of messagingEvents) {
+        const message = event.message;
+        const senderId = event.sender.id;
+        const recipientId = event.recipient.id;
+        const timestamp = event.timestamp;
 
-    //     // Fetch page details
-    //     const page = await Page.findOne({ page_id: recipientId });
+        // Fetch page details
+        const page = await Page.findOne({ page_id: recipientId });
 
-    //     // If page doesn't exist or is inactive, skip processing
-    //     if (!page) {
-    //       console.warn(`Page ${recipientId} not found. Ignoring message from ${senderId}.`);
-    //       continue;
-    //     }
+        // If page doesn't exist or is inactive, skip processing
+        if (!page) {
+          console.warn(`Page ${recipientId} not found. Ignoring message from ${senderId}.`);
+          continue;
+        }
 
-    //     if (!page.isActive) {
-    //       console.log(`Skipping message from ${senderId} because page ${recipientId} is inactive.`);
-    //       continue;
-    //     }
+        if (!page.isActive) {
+          console.log(`Skipping message from ${senderId} because page ${recipientId} is inactive.`);
+          continue;
+        }
 
-    //     // Push message to Redis queue
-    //     await redis.lpush("message_queue", JSON.stringify({
-    //       message_id: message?.mid || null,
-    //       sender_id: senderId,
-    //       recipient_id: recipientId,
-    //       text: message?.text || "",
-    //       sent_time: new Date(timestamp).toISOString(),
-    //       page_access_token: page.access_token,
-    //     }));
-    //   }
-    // }
+        // Push message to Redis queue
+        await redis.lpush("message_queue", JSON.stringify({
+          message_id: message?.mid || null,
+          sender_id: senderId,
+          recipient_id: recipientId,
+          text: message?.text || "",
+          sent_time: new Date(timestamp).toISOString(),
+          page_access_token: page.access_token,
+        }));
+      }
+    }
 
     return NextResponse.json(
-      { message: "Message has been queued successfully", body }, 
+      { message: "Message has been queued successfully" }, 
       { status: 200 }
     );
 
