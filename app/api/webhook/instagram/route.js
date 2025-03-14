@@ -41,16 +41,16 @@ export async function POST(request) {
         // Fetch page details
         const insta = await Insta.findOne({ instagram_id: recipientId });
 
-        // If page doesn't exist or is inactive, skip processing
-        // if (!page) {
-        //   console.warn(`Page ${recipientId} not found. Ignoring message from ${senderId}.`);
-        //   continue;
-        // }
+        //If page doesn't exist or is inactive, skip processing
+        if (!insta) {
+          console.warn(`Instagram ${recipientId} not found. Ignoring message from ${senderId}.`);
+          continue;
+        }
 
-        // if (!page.isActive) {
-        //   console.log(`Skipping message from ${senderId} because page ${recipientId} is inactive.`);
-        //   continue;
-        // }
+        if (!insta.isActive) {
+          console.log(`Skipping message from ${senderId} because page ${recipientId} is inactive.`);
+          continue;
+        }
 
         // Push message to Redis queue
         await redis.lpush("message_queue", JSON.stringify({
