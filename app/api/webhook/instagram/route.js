@@ -27,6 +27,8 @@ export async function POST(request) {
     const body = await request.json();
     const entries = body.entry;
 
+    console.log(body)
+    
     await dbConnect();
 
     for (const entry of entries) {
