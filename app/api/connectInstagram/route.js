@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { dbConnect } from "@/lib/mongo";
 import { Page } from "@/model/page-model";
+import { Insta } from "@/model/insta-model";
+import { createInsta } from "@/queries/instagram";
 
 export async function POST(request) {
   try {
@@ -40,8 +42,17 @@ export async function POST(request) {
     }
 
     const instagram_id = data.instagram_business_account.id;
-    page.instagram_id = instagram_id;
-    await page.save();
+    
+    const existingInsta = await Insta.findOne({instagram_id})
+
+    if (existingInsta) {
+            return NextResponse.json(
+              { error: "Insta already exists" },
+              { status: 400 }
+            );
+        }
+
+        await createInsta({ access_token, instagram_id });
 
     return NextResponse.json(
       { message: "Instagram account ID has been saved successfully", instagramId: instagram_id },

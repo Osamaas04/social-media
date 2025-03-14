@@ -61,7 +61,6 @@ export async function POST(request) {
 
     const existingPage = await Page.findOne({ page_id });
     if (existingPage) {
-      if (existingPage)
         return NextResponse.json(
           { error: "Page already exists" },
           { status: 400 }
