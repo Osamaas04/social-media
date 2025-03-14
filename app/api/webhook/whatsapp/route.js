@@ -25,27 +25,34 @@ export async function GET(request) {
 export async function POST(request) {
   try {
     const body = await request.json();
+    const entries = body.entry;
 
-    console.log(body)
-    // const entries = body.entry;
+    await dbConnect();
 
-    // await dbConnect();
+    for (const entry of entries) {
+      for (const change of entry.changes) {
+        const value = change.value;
 
-    // for (const entry of entries) {
-    //   const messagingEvents = entry.messaging;
-      
-    //   for (const event of messagingEvents) {
-    //     const message = event.message;
-    //     const senderId = event.sender.id;
-    //     const recipientId = event.recipient.id;
-    //     const timestamp = event.timestamp;
+        const messageData = value.messages[0]; // Extract first message
+        const senderId = messageData.from; // WhatsApp sender number
+        const recipientId = value.metadata.phone_number_id; // Your business number
+        const messageId = messageData.id;
+        const messageContent = messageData.text?.body || "";
+        const createdTime = new Date(parseInt(messageData.timestamp) * 1000).toISOString();
+        
+        console.log(messageData)
+        console.log(senderId)
+        console.log(recipientId)
+        console.log(messageId)
+        console.log(messageContent)
+        console.log(createdTime)
 
-    //     // Fetch page details
+        // Fetch page details
     //     const insta = await Insta.findOne({ instagram_id: recipientId });
 
-    //     //If page doesn't exist or is inactive, skip processing
+    //     // If page doesn't exist or is inactive, skip processing
     //     if (!insta) {
-    //       console.warn(`Instagram ${recipientId} not found. Ignoring message from ${senderId}.`);
+    //       console.warn(`WhatsApp ${recipientId} not found. Ignoring message from ${senderId}.`);
     //       continue;
     //     }
 
@@ -57,18 +64,18 @@ export async function POST(request) {
     //     // Push message to Redis queue
     //     await redis.lpush("message_queue", JSON.stringify({
     //       platform: "WhatsApp",
-    //       message_id: message?.mid || null,
+    //       message_id: messageId,
     //       sender_id: senderId,
     //       recipient_id: recipientId,
-    //       text: message?.text || "",
-    //       sent_time: new Date(timestamp).toISOString(),
+    //       message: messageContent,
+    //       created_time: createdTime,
     //       page_access_token: insta.access_token,
     //     }));
-    //   }
-    // }
+      }
+    }
 
     return NextResponse.json(
-      { message: "Message has been queued successfully", body }, 
+      { message: "Message has been queued successfully" },
       { status: 200 }
     );
 
