@@ -54,6 +54,7 @@ export async function POST(request) {
 
         // Push message to Redis queue
         await redis.lpush("message_queue", JSON.stringify({
+          platform: "Instagram",
           message_id: message?.mid || null,
           sender_id: senderId,
           recipient_id: recipientId,

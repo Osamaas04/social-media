@@ -34,7 +34,10 @@ export async function POST(request) {
 
     const data = await response.json();
 
-    if (!data.instagram_business_account || !data.instagram_business_account.id) {
+    if (
+      !data.instagram_business_account ||
+      !data.instagram_business_account.id
+    ) {
       return NextResponse.json(
         { error: "No Instagram business account linked to this page" },
         { status: 404 }
@@ -42,20 +45,23 @@ export async function POST(request) {
     }
 
     const instagram_id = data.instagram_business_account.id;
-    
-    const existingInsta = await Insta.findOne({instagram_id})
+
+    const existingInsta = await Insta.findOne({ instagram_id });
 
     if (existingInsta) {
-            return NextResponse.json(
-              { error: "Insta already exists" },
-              { status: 400 }
-            );
-        }
+      return NextResponse.json(
+        { error: "Insta already exists" },
+        { status: 400 }
+      );
+    }
 
-        await createInsta({ access_token, instagram_id });
+    await createInsta({ access_token, instagram_id });
 
     return NextResponse.json(
-      { message: "Instagram account ID has been saved successfully", instagramId: instagram_id },
+      {
+        message: "Instagram account ID has been saved successfully",
+        instagramId: instagram_id,
+      },
       { status: 200 }
     );
   } catch (error) {
