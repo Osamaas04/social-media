@@ -13,10 +13,6 @@ const pageSchema = new Schema({
     required: true,
     type: String,
   },
-  instagram_id: {
-    type: String,
-    default: ""
-  },
   isActive: {
     type: Boolean,
     default: false,

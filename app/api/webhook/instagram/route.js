@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { redis } from "@/lib/redis";
 import { dbConnect } from "@/lib/mongo";
-import { Page } from "@/model/page-model";
+import { Insta } from "@/model/insta-model";
 
 export async function GET(request) {
   try {
@@ -27,8 +27,6 @@ export async function POST(request) {
     const body = await request.json();
     const entries = body.entry;
 
-    
-
     await dbConnect();
 
     for (const entry of entries) {
@@ -40,13 +38,8 @@ export async function POST(request) {
         const recipientId = event.recipient.id;
         const timestamp = event.timestamp;
 
-        console.log(message)
-        console.log(senderId)
-        console.log(recipientId)
-        console.log(timestamp)
-
         // Fetch page details
-        const page = await Page.findOne({ page_id: recipientId });
+        const insta = await Insta.findOne({ page_id: recipientId });
 
         // If page doesn't exist or is inactive, skip processing
         // if (!page) {
@@ -66,7 +59,7 @@ export async function POST(request) {
           recipient_id: recipientId,
           text: message?.text || "",
           sent_time: new Date(timestamp).toISOString(),
-          page_access_token: page.access_token,
+          page_access_token: insta.access_token,
         }));
       }
     }
@@ -79,7 +72,7 @@ export async function POST(request) {
   } catch (error) {
     console.error(`Failed to queue the message: ${error.message}`);
     return NextResponse.json(
-      { error: "Internal Server Error", body },
+      { error: "Internal Server Error" },
       { status: 500 }
     );
   }
