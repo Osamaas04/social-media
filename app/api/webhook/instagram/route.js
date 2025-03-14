@@ -27,8 +27,8 @@ export async function POST(request) {
     const body = await request.json();
     const entries = body.entry;
 
-    console.log(body)
     
+
     await dbConnect();
 
     for (const entry of entries) {
@@ -39,6 +39,11 @@ export async function POST(request) {
         const senderId = event.sender.id;
         const recipientId = event.recipient.id;
         const timestamp = event.timestamp;
+
+        console.log(message)
+        console.log(senderId)
+        console.log(recipientId)
+        console.log(timestamp)
 
         // Fetch page details
         const page = await Page.findOne({ page_id: recipientId });
@@ -74,7 +79,7 @@ export async function POST(request) {
   } catch (error) {
     console.error(`Failed to queue the message: ${error.message}`);
     return NextResponse.json(
-      { error: "Internal Server Error" },
+      { error: "Internal Server Error", body },
       { status: 500 }
     );
   }
