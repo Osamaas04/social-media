@@ -39,7 +39,7 @@ export async function POST(request) {
         const timestamp = event.timestamp;
 
         // Fetch page details
-        const insta = await Insta.findOne({ page_id: recipientId });
+        const insta = await Insta.findOne({ instagram_id: recipientId });
 
         // If page doesn't exist or is inactive, skip processing
         // if (!page) {
