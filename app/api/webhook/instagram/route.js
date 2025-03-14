@@ -42,15 +42,15 @@ export async function POST(request) {
         const page = await Page.findOne({ page_id: recipientId });
 
         // If page doesn't exist or is inactive, skip processing
-        if (!page) {
-          console.warn(`Page ${recipientId} not found. Ignoring message from ${senderId}.`);
-          continue;
-        }
+        // if (!page) {
+        //   console.warn(`Page ${recipientId} not found. Ignoring message from ${senderId}.`);
+        //   continue;
+        // }
 
-        if (!page.isActive) {
-          console.log(`Skipping message from ${senderId} because page ${recipientId} is inactive.`);
-          continue;
-        }
+        // if (!page.isActive) {
+        //   console.log(`Skipping message from ${senderId} because page ${recipientId} is inactive.`);
+        //   continue;
+        // }
 
         // Push message to Redis queue
         await redis.lpush("message_queue", JSON.stringify({
