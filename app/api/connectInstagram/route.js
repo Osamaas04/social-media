@@ -18,7 +18,7 @@ export async function POST(request) {
     const { access_token } = page;
 
     const response = await fetch(
-      `https://graph.facebook.com/v18.0/${page_id}?fields=instagram_business_account&access_token=${access_token}`,
+      `https://graph.facebook.com/v22.0/${page_id}?fields=instagram_business_account&access_token=${access_token}`,
       {
         method: "GET",
         headers: { "Content-Type": "application/json" },

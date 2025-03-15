@@ -61,16 +61,16 @@ export async function POST(request) {
     //       continue;
     //     }
 
-    //     // Push message to Redis queue
-    //     await redis.lpush("message_queue", JSON.stringify({
-    //       platform: "WhatsApp",
-    //       message_id: messageId,
-    //       sender_id: senderId,
-    //       recipient_id: recipientId,
-    //       message: messageContent,
-    //       created_time: createdTime,
-    //       page_access_token: insta.access_token,
-    //     }));
+        // Push message to Redis queue
+        await redis.lpush("message_queue", JSON.stringify({
+          platform: "WhatsApp",
+          message_id: messageId,
+          sender_id: senderId,
+          recipient_id: recipientId,
+          message: messageContent,
+          created_time: createdTime,
+          page_access_token: insta.access_token,
+        }));
       }
     }
 
