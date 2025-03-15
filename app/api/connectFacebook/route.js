@@ -37,6 +37,20 @@ export async function POST(request) {
       );
     }
 
+    const longLivedUserAccessTokenResponse = await fetch(
+      `https://graph.facebook.com/v18.0/oauth/access_token?grant_type=fb_exchange_token&client_id=${process.env.NEXT_PUBLIC_FACEBOOK_APP_ID}&client_secret=${process.env.FACEBOOK_APP_SECRET}&fb_exchange_token=${userAccessToken}`
+    );
+
+    if (!longLivedUserAccessTokenResponse.ok) {
+      return NextResponse.json(
+        { error: "Failed to fetch long-lived user access token" },
+        { status: 400 }
+      );
+    }
+
+    const longLivedUserAccessTokenData = await longLivedUserAccessTokenResponse.json();
+    const longLivedUserAccessToken = longLivedUserAccessTokenData.access_token;
+
     const pageAccessTokenResponse = await fetch(
       `https://graph.facebook.com/v22.0/me/accounts?access_token=${userAccessToken}`
     );
@@ -61,13 +75,13 @@ export async function POST(request) {
 
     const existingPage = await Page.findOne({ page_id });
     if (existingPage) {
-        return NextResponse.json(
-          { error: "Page already exists" },
-          { status: 400 }
-        );
+      return NextResponse.json(
+        { error: "Page already exists" },
+        { status: 400 }
+      );
     }
 
-    await createPage({ page_name, page_id, access_token });
+    await createPage({ page_name, page_id, user_access_token: longLivedUserAccessToken, access_token });
 
     return NextResponse.json(
       { message: "Page access token stored successfully", page_id },
@@ -76,4 +90,4 @@ export async function POST(request) {
   } catch (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
-};
+}

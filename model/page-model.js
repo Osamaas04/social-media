@@ -9,6 +9,10 @@ const pageSchema = new Schema({
     required: true,
     type: String,
   },
+  user_access_token: {
+    required: true,
+    type: String,
+  },
   access_token: {
     required: true,
     type: String,

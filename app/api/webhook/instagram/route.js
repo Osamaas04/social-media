@@ -38,10 +38,8 @@ export async function POST(request) {
         const recipientId = event.recipient.id;
         const timestamp = event.timestamp;
 
-        // Fetch page details
         const insta = await Insta.findOne({ instagram_id: recipientId });
 
-        //If page doesn't exist or is inactive, skip processing
         if (!insta) {
           console.warn(`Instagram ${recipientId} not found. Ignoring message from ${senderId}.`);
           continue;
@@ -52,7 +50,6 @@ export async function POST(request) {
           continue;
         }
 
-        // Push message to Redis queue
         await redis.lpush("message_queue", JSON.stringify({
           platform: "Instagram",
           message_id: message?.mid || null,
