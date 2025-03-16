@@ -30,33 +30,33 @@ export async function POST(request) {
     await dbConnect();
 
     for (const entry of entries) {
+      const wabaId = entry.id;
+      
       for (const change of entry.changes) {
         const value = change.value;
 
-        const messageData = value.messages[0]; // Extract first message
-        const senderId = messageData.from; // WhatsApp sender number
-        const recipientId = value.metadata.phone_number_id; // Your business number
+        const messageData = value.messages[0];
+        const senderId = messageData.from;
+        const recipientId = value.metadata.phone_number_id;
         const messageId = messageData.id;
         const messageContent = messageData.text?.body || "";
         const createdTime = new Date(parseInt(messageData.timestamp) * 1000).toISOString();
 
-        // Fetch page details
-        const whats = await Whats.findOne({ phone_number_id: recipientId });
+        const whats = await Whats.findOne({ whatsapp_business_account_id: wabaId });
 
-        // If page doesn't exist or is inactive, skip processing
         if (!whats) {
-          console.warn(`WhatsApp ${recipientId} not found. Ignoring message from ${senderId}.`);
+          console.warn(`WhatsApp Business Account ${wabaId} not found. Ignoring message.`);
           continue;
         }
 
         if (!whats.isActive) {
-          console.log(`Skipping message from ${senderId} because whatsapp ${recipientId} is inactive.`);
+          console.log(`Skipping message because WABA ${wabaId} is inactive.`);
           continue;
         }
 
-        // Push message to Redis queue
         await redis.lpush("message_queue", JSON.stringify({
           platform: "WhatsApp",
+          whatsapp_business_account_id: wabaId,
           message_id: messageId,
           sender_id: senderId,
           recipient_id: recipientId,
@@ -73,7 +73,7 @@ export async function POST(request) {
     );
 
   } catch (error) {
-    console.error(`Failed to queue the message: ${error.message}`);
+    console.error(`Failed to queue message: ${error.message}`);
     return NextResponse.json(
       { error: "Internal Server Error" },
       { status: 500 }
