@@ -23,7 +23,6 @@ export async function POST(request) {
       );
     }
 
-    console.log(platform)
 
     if (typeof isActive !== "boolean") {
       return NextResponse.json(
@@ -31,8 +30,6 @@ export async function POST(request) {
         { status: 400 }
       );
     }
-
-    console.log(isActive)
 
     await dbConnect();
 
@@ -67,18 +64,16 @@ export async function POST(request) {
         break;
 
       case "WhatsApp":
-        const whats = await Whats.findOne({ whatsapp_id });
+        const whats = await Whats.findOne({ whatsapp_business_account_id: whatsapp_id });
         if (!whats) {
           return NextResponse.json(
             { error: "WhatsApp account doesn't exist" },
             { status: 400 }
           );
         }
-        console.log(whats)
         whats.isActive = isActive;
         await whats.save();
         updatedStatus = whats.isActive;
-        console.log(updatedStatus)
         break;
 
       default:
