@@ -23,6 +23,8 @@ export async function POST(request) {
       );
     }
 
+    console.log(whatsapp_id)
+
     if (typeof isActive !== "boolean") {
       return NextResponse.json(
         { error: "Invalid isActive value" },
