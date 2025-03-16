@@ -1,14 +1,20 @@
 import { NextResponse } from "next/server";
+import { dbConnect } from "@/lib/mongo";
+import { createWhats } from "@/queries/whatsapp";
+import { Page } from "@/model/page-model";
 
 export async function POST(request) {
   try {
-    const { user_access_token } = await request.json();
+    const { page_id } = await request.json();
 
-    if (!user_access_token)
-      return NextResponse.json(
-        { error: "Missing user access token" },
-        { status: 400 }
-      );
+    await dbConnect();
+
+    const page = await Page.findOne({ page_id });
+    if (!page) {
+      return NextResponse.json({ error: "Page not found" }, { status: 404 });
+    }
+
+    const { access_token, user_access_token } = page;
 
     const businessIdResponse = await fetch(
       `https://graph.facebook.com/v22.0/me/businesses?access_token=${user_access_token}`
@@ -51,10 +57,17 @@ export async function POST(request) {
 
     const phoneNumberIdData = await phoneNumberIdResponse.json();
     const phone_number_id = phoneNumberIdData.data[0].id;
+    const name = phoneNumberIdData.data[0].verified_name;
+    const phone_number = phoneNumberIdData.data[0].display_phone_number;
 
-    console.log(business_id);
-    console.log(waba);
-    console.log(phone_number_id);
+    await createWhats({
+      name,
+      phone_number,
+      whatsapp_business_account_id: waba,
+      phone_number_id,
+      user_access_token,
+      access_token,
+    });
 
     return NextResponse.json(
       { message: "WABA and phone number ID have stored successfully" },
