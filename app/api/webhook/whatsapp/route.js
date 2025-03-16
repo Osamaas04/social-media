@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { redis } from "@/lib/redis";
 import { dbConnect } from "@/lib/mongo";
-import { Insta } from "@/model/insta-model";
+import { Whats } from "@/model/whatsapp-model";
 
 export async function GET(request) {
   try {
@@ -39,27 +39,20 @@ export async function POST(request) {
         const messageId = messageData.id;
         const messageContent = messageData.text?.body || "";
         const createdTime = new Date(parseInt(messageData.timestamp) * 1000).toISOString();
-        
-        console.log(messageData)
-        console.log(senderId)
-        console.log(recipientId)
-        console.log(messageId)
-        console.log(messageContent)
-        console.log(createdTime)
 
         // Fetch page details
-    //     const insta = await Insta.findOne({ instagram_id: recipientId });
+        const whats = await Whats.findOne({ phone_number_id: recipientId });
 
-    //     // If page doesn't exist or is inactive, skip processing
-    //     if (!insta) {
-    //       console.warn(`WhatsApp ${recipientId} not found. Ignoring message from ${senderId}.`);
-    //       continue;
-    //     }
+        // If page doesn't exist or is inactive, skip processing
+        if (!whats) {
+          console.warn(`WhatsApp ${recipientId} not found. Ignoring message from ${senderId}.`);
+          continue;
+        }
 
-    //     if (!insta.isActive) {
-    //       console.log(`Skipping message from ${senderId} because page ${recipientId} is inactive.`);
-    //       continue;
-    //     }
+        if (!whats.isActive) {
+          console.log(`Skipping message from ${senderId} because whatsapp ${recipientId} is inactive.`);
+          continue;
+        }
 
         // Push message to Redis queue
         await redis.lpush("message_queue", JSON.stringify({
@@ -69,7 +62,7 @@ export async function POST(request) {
           recipient_id: recipientId,
           message: messageContent,
           created_time: createdTime,
-          page_access_token: insta.access_token,
+          page_access_token: whats.access_token,
         }));
       }
     }
