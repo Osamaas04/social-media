@@ -18,7 +18,10 @@ export async function GET(request) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
   } catch (error) {
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 }
+    );
   }
 }
 
@@ -27,19 +30,28 @@ export async function POST(request) {
     const body = await request.json();
     const entries = body.entry;
 
-    console.log(body)
-    console.log(entries)
-
     // await dbConnect();
 
-    // for (const entry of entries) {
-    //   const messagingEvents = entry.messaging;
-      
-    //   for (const event of messagingEvents) {
-    //     const message = event.message;
-    //     const senderId = event.sender.id;
-    //     const recipientId = event.recipient.id;
-    //     const timestamp = event.timestamp;
+    let message;
+    let recipientId;
+    let senderId;
+    let timestamp;
+
+    for (const entry of entries) {
+      const messagingEvents = entry.messaging;
+
+      for (const event of messagingEvents) {
+        message = event.message;
+        senderId = event.sender.id;
+        recipientId = event.recipient.id;
+        timestamp = event.timestamp;
+      }
+    }
+
+    console.log(message)
+    console.log(senderId)
+    console.log(recipientId)
+    console.log(timestamp)
 
     //     // Fetch page details
     //     const page = await Page.findOne({ page_id: recipientId });
@@ -69,10 +81,9 @@ export async function POST(request) {
     // }
 
     return NextResponse.json(
-      { message: "Message has been queued successfully" }, 
+      { message: "Message has been queued successfully" },
       { status: 200 }
     );
-
   } catch (error) {
     console.error(`Failed to queue the message: ${error.message}`);
     return NextResponse.json(
