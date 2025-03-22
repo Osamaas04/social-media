@@ -30,7 +30,9 @@ export async function POST(request) {
     const body = await request.json();
     const entries = body.entry;
 
-    // await dbConnect();
+    await dbConnect();
+
+    const page = await Page.findOne({ page_id: recipientId });
 
     let message;
     let recipientId;
@@ -48,37 +50,32 @@ export async function POST(request) {
       }
     }
 
-    console.log(message)
-    console.log(senderId)
-    console.log(recipientId)
-    console.log(timestamp)
+    console.log(message);
+    console.log(senderId);
+    console.log(recipientId);
+    console.log(timestamp);
 
-    //     // Fetch page details
-    //     const page = await Page.findOne({ page_id: recipientId });
+    if (!page) {
+      console.warn(
+        `Page ${recipientId} not found. Ignoring message from ${senderId}.`
+      );
+    }
 
-    //     // If page doesn't exist or is inactive, skip processing
-    //     if (!page) {
-    //       console.warn(`Page ${recipientId} not found. Ignoring message from ${senderId}.`);
-    //       continue;
-    //     }
+    if (!page.isActive) {
+      console.log(
+        `Skipping message from ${senderId} because page ${recipientId} is inactive.`
+      );
+    }
 
-    //     if (!page.isActive) {
-    //       console.log(`Skipping message from ${senderId} because page ${recipientId} is inactive.`);
-    //       continue;
-    //     }
-
-    //     // Push message to Redis queue
-    //     await redis.lpush("message_queue", JSON.stringify({
-    //       platform: "Messenger",
-    //       message_id: message?.mid || null,
-    //       sender_id: senderId,
-    //       recipient_id: recipientId,
-    //       text: message?.text || "",
-    //       sent_time: new Date(timestamp).toISOString(),
-    //       page_access_token: page.access_token,
-    //     }));
-    //   }
-    // }
+        await redis.lpush("message_queue", JSON.stringify({
+          platform: "Messenger",
+          message_id: message?.mid || null,
+          sender_id: senderId,
+          recipient_id: recipientId,
+          text: message?.text || "",
+          sent_time: new Date(timestamp).toISOString(),
+          page_access_token: page.access_token,
+        }));
 
     return NextResponse.json(
       { message: "Message has been queued successfully" },
