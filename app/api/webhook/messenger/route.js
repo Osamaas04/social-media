@@ -59,11 +59,19 @@ export async function POST(request) {
       console.warn(
         `Page ${recipientId} not found. Ignoring message from ${senderId}.`
       );
+      return NextResponse.json(
+        { message: "Page not found, ignoring message" },
+        { status: 404 }
+      );
     }
 
     if (!page.isActive) {
       console.log(
         `Skipping message from ${senderId} because page ${recipientId} is inactive.`
+      );
+      return NextResponse.json(
+        { message: "Page is inactive, message ignored" },
+        { status: 200 }
       );
     }
 
