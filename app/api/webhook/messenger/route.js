@@ -32,8 +32,6 @@ export async function POST(request) {
 
     await dbConnect();
 
-    const page = await Page.findOne({ page_id: recipientId });
-
     let message;
     let recipientId;
     let senderId;
@@ -54,6 +52,8 @@ export async function POST(request) {
     console.log(senderId);
     console.log(recipientId);
     console.log(timestamp);
+
+    const page = await Page.findOne({ page_id: recipientId });
 
     if (!page) {
       console.warn(
