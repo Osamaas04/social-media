@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
-import { redis } from "@/lib/redis";
 import { dbConnect } from "@/lib/mongo";
 import { Whats } from "@/model/whatsapp-model";
+import sql from "mssql";
+import { getConnection } from "@/lib/sql";
 
 export async function GET(request) {
   try {
@@ -41,14 +42,18 @@ export async function POST(request) {
 
     for (const entry of entries) {
       wabaId = entry.id;
-      const messagingEvents = entry.messaging;
 
-      for (const event of messagingEvents) {
-        message = event.message?.text || "";
-        messageId = event.message?.mid;
-        senderId = event.sender.id;
-        recipientId = event.recipient.id;
-        timestamp = event.timestamp ? new Date(event.timestamp) : new Date();
+      for (const change of entry.changes) {
+        const value = change.value;
+
+        const messageData = value.messages[0];
+        senderId = messageData.from;
+        recipientId = value.metadata.phone_number_id;
+        messageId = messageData.id;
+        message = messageData.text?.body || "";
+        timestamp = new Date(
+          parseInt(messageData.timestamp) * 1000
+        ).toISOString();
       }
     }
 
