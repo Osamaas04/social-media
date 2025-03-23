@@ -80,7 +80,7 @@ export async function POST(request) {
     sqlRequest.input("SenderId", sql.NVarChar(255), senderId);
     sqlRequest.input("RecipientId", sql.NVarChar(255), recipientId);
     sqlRequest.input("MessageId", sql.NVarChar(255), messageId);
-    sqlRequest.input("Message", sql.NVarChar(1000), message);
+    sqlRequest.input("Text", sql.NVarChar(1000), message);
     sqlRequest.input("PageAccessToken", sql.NVarChar(255), whats.access_token);
     sqlRequest.input("WabaId", sql.NVarChar(255), wabaId);
     sqlRequest.input("Status", sql.Int, 0);
@@ -90,11 +90,11 @@ export async function POST(request) {
 
     await sqlRequest.query(`
               INSERT INTO Messages (
-                Id, SenderId, RecipientId, MessageId, Message, PageAccessToken, WabaId, 
+                Id, SenderId, RecipientId, MessageId, Text, PageAccessToken, WabaId, 
                 Status, CreateAt, SentAt, Platform
               ) 
               VALUES (
-                NEWID(), @SenderId, @RecipientId, @MessageId, @Message, 
+                NEWID(), @SenderId, @RecipientId, @MessageId, @Text, 
                 @PageAccessToken, @WabaId, @Status, @CreateAt, @SentAt, @Platform
               )
             `);
