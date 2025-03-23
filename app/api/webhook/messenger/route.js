@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { redis } from "@/lib/redis";
 import { dbConnect } from "@/lib/mongo";
 import { Page } from "@/model/page-model";
+import sql from "mssql";
+import { getConnection } from "@/lib/sql";
 
 export async function GET(request) {
   try {
@@ -33,6 +35,7 @@ export async function POST(request) {
     await dbConnect();
 
     let message;
+    let messageId;
     let recipientId;
     let senderId;
     let timestamp;
@@ -41,17 +44,13 @@ export async function POST(request) {
       const messagingEvents = entry.messaging;
 
       for (const event of messagingEvents) {
-        message = event.message;
+        message = event.message?.text || "";
+        messageId = event.message?.mid; 
         senderId = event.sender.id;
         recipientId = event.recipient.id;
-        timestamp = event.timestamp;
+        timestamp = event.timestamp ? new Date(event.timestamp) : new Date();
       }
     }
-
-    console.log(message);
-    console.log(senderId);
-    console.log(recipientId);
-    console.log(timestamp);
 
     const page = await Page.findOne({ page_id: recipientId });
 
@@ -75,15 +74,31 @@ export async function POST(request) {
       );
     }
 
-        await redis.lpush("message_queue", JSON.stringify({
-          platform: "Messenger",
-          message_id: message?.mid || null,
-          sender_id: senderId,
-          recipient_id: recipientId,
-          text: message?.text || "",
-          sent_time: new Date(timestamp).toISOString(),
-          page_access_token: page.access_token,
-        }));
+    const pool = await getConnection();
+    const sqlRequest = pool.request();
+
+    sqlRequest.input("SenderId", sql.NVarChar(255), senderId);
+    sqlRequest.input("RecipientId", sql.NVarChar(255), recipientId);
+    sqlRequest.input("MessageId", sql.NVarChar(1000), messageId);
+    sqlRequest.input("Message", sql.NVarChar(1000), message);
+    sqlRequest.input("SenderName", sql.NVarChar(1000), "Test"); 
+    sqlRequest.input("PageAccessTocken", sql.NVarChar(200), page.access_token);
+    sqlRequest.input("Status", sql.Int, 1); 
+    sqlRequest.input("CreateAt", sql.DateTime2, new Date()); 
+    sqlRequest.input("SentAt", sql.DateTime2, timestamp);
+    sqlRequest.input("Platform", sql.NVarChar(1), "F"); 
+    sqlRequest.input("PageId", sql.NVarChar(255), page.page_id); 
+
+    await sqlRequest.query(`
+      INSERT INTO Messages (
+        Id, SenderId, RecipientId, MessageId, Message, SenderName, PageAccessTocken, 
+        Status, CreateAt, SentAt, Platform, PageId
+      ) 
+      VALUES (
+        NEWID(), @SenderId, @RecipientId, @MessageId, @Message, @SenderName, 
+        @PageAccessTocken, @Status, @CreateAt, @SentAt, @Platform, @PageId
+      )
+    `);
 
     return NextResponse.json(
       { message: "Message has been queued successfully" },
