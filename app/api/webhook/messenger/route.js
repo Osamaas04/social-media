@@ -77,6 +77,8 @@ export async function POST(request) {
     const pool = await getConnection();
     const sqlRequest = pool.request();
 
+    console.log(process.env.SQL_SERVER)
+
     sqlRequest.input("SenderId", sql.NVarChar(255), senderId);
     sqlRequest.input("RecipientId", sql.NVarChar(255), recipientId);
     sqlRequest.input("MessageId", sql.NVarChar(1000), messageId);
