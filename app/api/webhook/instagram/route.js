@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
-import { redis } from "@/lib/redis";
 import { dbConnect } from "@/lib/mongo";
 import { Insta } from "@/model/insta-model";
+import sql from "mssql";
+import { getConnection } from "@/lib/sql";
 
 export async function GET(request) {
   try {
@@ -18,7 +19,10 @@ export async function GET(request) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
   } catch (error) {
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 }
+    );
   }
 }
 
@@ -29,44 +33,76 @@ export async function POST(request) {
 
     await dbConnect();
 
+    let message;
+    let messageId;
+    let recipientId;
+    let senderId;
+    let timestamp;
+
     for (const entry of entries) {
       const messagingEvents = entry.messaging;
-      
+
       for (const event of messagingEvents) {
-        const message = event.message;
-        const senderId = event.sender.id;
-        const recipientId = event.recipient.id;
-        const timestamp = event.timestamp;
-
-        const insta = await Insta.findOne({ instagram_id: recipientId });
-
-        if (!insta) {
-          console.warn(`Instagram ${recipientId} not found. Ignoring message from ${senderId}.`);
-          continue;
-        }
-
-        if (!insta.isActive) {
-          console.log(`Skipping message from ${senderId} because page ${recipientId} is inactive.`);
-          continue;
-        }
-
-        await redis.lpush("message_queue", JSON.stringify({
-          platform: "Instagram",
-          message_id: message?.mid || null,
-          sender_id: senderId,
-          recipient_id: recipientId,
-          text: message?.text || "",
-          sent_time: new Date(timestamp).toISOString(),
-          page_access_token: insta.access_token,
-        }));
+        message = event.message?.text || "";
+        messageId = event.message?.mid;
+        senderId = event.sender.id;
+        recipientId = event.recipient.id;
+        timestamp = event.timestamp ? new Date(event.timestamp) : new Date();
       }
     }
 
+    const insta = await Insta.findOne({ instagram_id: recipientId });
+
+    if (!insta) {
+      console.warn(
+        `Instagram ${recipientId} not found. Ignoring message from ${senderId}.`
+      );
+      return NextResponse.json(
+        { message: "Instagram not found, ignoring message" },
+        { status: 404 }
+      );
+    }
+
+    if (!insta.isActive) {
+      console.log(
+        `Skipping message from ${senderId} because Instagram ${recipientId} is inactive.`
+      );
+      return NextResponse.json(
+        { message: "Instagram is inactive, message ignored" },
+        { status: 200 }
+      );
+    }
+
+    const pool = await getConnection();
+    const sqlRequest = pool.request();
+
+    console.log(process.env.SQL_SERVER);
+
+    sqlRequest.input("SenderId", sql.NVarChar(255), senderId);
+    sqlRequest.input("RecipientId", sql.NVarChar(255), recipientId);
+    sqlRequest.input("MessageId", sql.NVarChar(255), messageId);
+    sqlRequest.input("Message", sql.NVarChar(1000), message);
+    sqlRequest.input("PageAccessToken", sql.NVarChar(255), page.access_token);
+    sqlRequest.input("Status", sql.Int, 0);
+    sqlRequest.input("CreateAt", sql.DateTime2, new Date());
+    sqlRequest.input("SentAt", sql.DateTime2, timestamp);
+    sqlRequest.input("Platform", sql.NVarChar(1), "I");
+
+    await sqlRequest.query(`
+          INSERT INTO Messages (
+            Id, SenderId, RecipientId, MessageId, Message, PageAccessToken, 
+            Status, CreateAt, SentAt, Platform
+          ) 
+          VALUES (
+            NEWID(), @SenderId, @RecipientId, @MessageId, @Message, 
+            @PageAccessToken, @Status, @CreateAt, @SentAt, @Platform
+          )
+        `);
+
     return NextResponse.json(
-      { message: "Message has been queued successfully" }, 
+      { message: "Message has been queued successfully" },
       { status: 200 }
     );
-
   } catch (error) {
     console.error(`Failed to queue the message: ${error.message}`);
     return NextResponse.json(
