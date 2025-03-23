@@ -88,16 +88,15 @@ export async function POST(request) {
     sqlRequest.input("CreateAt", sql.DateTime2, new Date()); 
     sqlRequest.input("SentAt", sql.DateTime2, timestamp);
     sqlRequest.input("Platform", sql.NVarChar(1), "F"); 
-    sqlRequest.input("PageId", sql.NVarChar(255), page.page_id); 
 
     await sqlRequest.query(`
       INSERT INTO Messages (
         Id, SenderId, RecipientId, MessageId, Message, PageAccessTocken, 
-        Status, CreateAt, SentAt, Platform, PageId
+        Status, CreateAt, SentAt, Platform
       ) 
       VALUES (
         NEWID(), @SenderId, @RecipientId, @MessageId, @Message, 
-        @PageAccessTocken, @Status, @CreateAt, @SentAt, @Platform, @PageId
+        @PageAccessTocken, @Status, @CreateAt, @SentAt, @Platform
       )
     `);
 
