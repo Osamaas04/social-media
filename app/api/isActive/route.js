@@ -1,14 +1,12 @@
 import { dbConnect } from "@/lib/mongo";
-import { Insta } from "@/model/insta-model";
-import { Page } from "@/model/page-model";
-import { Whats } from "@/model/whatsapp-model";
+import { SocialIntegrations } from "@/model/social-integrations"; // Assuming this is the correct import path
 import { NextResponse } from "next/server";
 
 export async function POST(request) {
   try {
     const body = await request.json();
-    // Destructure whatsapp_id from the request body
-    const { page_id, isActive, platform, instagram_id, whatsapp_id } = body;
+    // Destructure the necessary fields from the request body
+    const { user_id, isActive, platform, instagram_id, whatsapp_id, page_id } = body;
 
     // Validate required fields based on platform
     if (
@@ -23,7 +21,6 @@ export async function POST(request) {
       );
     }
 
-
     if (typeof isActive !== "boolean") {
       return NextResponse.json(
         { error: "Invalid isActive value" },
@@ -33,47 +30,52 @@ export async function POST(request) {
 
     await dbConnect();
 
-    let updatedStatus;
+    const socialIntegration = await SocialIntegrations.findOne({ user_id });
+    if (!socialIntegration) {
+      return NextResponse.json(
+        { error: "User does not have any social integrations" },
+        { status: 400 }
+      );
+    }
 
-    // Handle each platform case
+    let updatedStatus;
+    const platformData = socialIntegration.platform_data;
+
     switch (platform) {
       case "Messenger":
-        const page = await Page.findOne({ page_id });
-        if (!page) {
+        if (!platformData.facebook || platformData.facebook.page_id !== page_id) {
           return NextResponse.json(
-            { error: "Page doesn't exist" },
+            { error: "Page doesn't exist or mismatch" },
             { status: 400 }
           );
         }
-        page.isActive = isActive;
-        await page.save();
-        updatedStatus = page.isActive;
+        platformData.facebook.status = isActive ? "active" : "inactive";
+        await socialIntegration.save();
+        updatedStatus = platformData.facebook.status;
         break;
 
       case "Instagram":
-        const insta = await Insta.findOne({ instagram_id });
-        if (!insta) {
+        if (!platformData.instagram || platformData.instagram.ig_business_id !== instagram_id) {
           return NextResponse.json(
-            { error: "Insta account doesn't exist" },
+            { error: "Instagram account doesn't exist or mismatch" },
             { status: 400 }
           );
         }
-        insta.isActive = isActive;
-        await insta.save();
-        updatedStatus = insta.isActive;
+        platformData.instagram.status = isActive ? "active" : "inactive";
+        await socialIntegration.save();
+        updatedStatus = platformData.instagram.status;
         break;
 
       case "WhatsApp":
-        const whats = await Whats.findOne({ whatsapp_business_account_id: whatsapp_id });
-        if (!whats) {
+        if (!platformData.whatsapp || platformData.whatsapp.business_account_id !== whatsapp_id) {
           return NextResponse.json(
-            { error: "WhatsApp account doesn't exist" },
+            { error: "WhatsApp account doesn't exist or mismatch" },
             { status: 400 }
           );
         }
-        whats.isActive = isActive;
-        await whats.save();
-        updatedStatus = whats.isActive;
+        platformData.whatsapp.status = isActive ? "active" : "inactive";
+        await socialIntegration.save();
+        updatedStatus = platformData.whatsapp.status;
         break;
 
       default:

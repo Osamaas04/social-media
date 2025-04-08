@@ -1,16 +1,17 @@
 import { NextResponse } from "next/server";
 import { dbConnect } from "@/lib/mongo";
-import { createPage } from "@/queries/pages";
-import { Page } from "@/model/page-model";
+import { createSocialIntegrations } from "@/queries/sociaIntegration";
+import { SocialIntegrations } from "@/model/sociaIntegration-model";
 
 export async function POST(request) {
   try {
     const { code } = await request.json();
-    if (!code)
+    if (!code) {
       return NextResponse.json(
         { error: "Missing authorization code" },
         { status: 400 }
       );
+    }
 
     const userAccessTokenResponse = await fetch(
       `https://graph.facebook.com/v22.0/oauth/access_token?client_id=${process.env.NEXT_PUBLIC_FACEBOOK_APP_ID}&redirect_uri=${process.env.NEXT_PUBLIC_REDIRECT_URI}?menu=Integrations&client_secret=${process.env.FACEBOOK_APP_SECRET}&code=${code}`
@@ -68,12 +69,9 @@ export async function POST(request) {
       return NextResponse.json({ error: "No pages found" }, { status: 400 });
     }
 
-    if (!data.length)
-      return NextResponse.json({ error: "No pages found" }, { status: 400 });
-
     const { name: page_name, id: page_id, access_token } = data[0];
 
-    const existingPage = await Page.findOne({ page_id });
+    const existingPage = await SocialIntegrations.findOne({ "platform_data.facebook.page_id": page_id });
     if (existingPage) {
       return NextResponse.json(
         { error: "Page already exists" },
@@ -81,7 +79,19 @@ export async function POST(request) {
       );
     }
 
-    await createPage({ page_name, page_id, user_access_token: longLivedUserAccessToken, access_token });
+    await createSocialIntegrations({
+      platform_data: {
+        facebook: {
+          page_name: page_name,
+          page_id: page_id,
+          connected_at: new Date(), 
+        }
+      },
+      token_info: {
+        user_access_token: longLivedUserAccessToken,
+        page_access_token: access_token
+      }
+    });
 
     return NextResponse.json(
       { message: "Page access token stored successfully", page_id },

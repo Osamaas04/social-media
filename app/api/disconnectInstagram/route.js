@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { dbConnect } from "@/lib/mongo";
-import { Insta } from "@/model/insta-model";
+import { SocialIntegrations } from "@/model/sociaIntegration-model";
 
 export async function POST(request) {
     try {
@@ -15,9 +15,14 @@ export async function POST(request) {
 
         await dbConnect();
 
-        const result = await Insta.deleteOne({ instagram_id });
+        const result = await SocialIntegrations.updateOne(
+            { "platform_data.instagram.ig_business_id": instagram_id },
+            {
+                $set: { "platform_data.instagram": {} },
+            }
+        );
 
-        if (result.deletedCount === 0) {
+        if (result.modifiedCount === 0) {
             return NextResponse.json(
                 { error: "Instagram account not found" },
                 { status: 404 }

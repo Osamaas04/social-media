@@ -1,24 +1,32 @@
 import { NextResponse } from "next/server";
 import { dbConnect } from "@/lib/mongo";
-import { Page } from "@/model/page-model";
-import { Insta } from "@/model/insta-model";
-import { createInsta } from "@/queries/instagram";
+import { SocialIntegrations } from "@/model/sociaIntegration-model"; 
 
 export async function POST(request) {
   try {
-    const { page_id } = await request.json();
+    const { page_id } = await request.json(); 
+
+    if (!page_id) {
+      return NextResponse.json(
+        { error: "Missing page_id" },
+        { status: 400 }
+      );
+    }
 
     await dbConnect();
 
-    const page = await Page.findOne({ page_id });
-    if (!page) {
-      return NextResponse.json({ error: "Page not found" }, { status: 404 });
+    const userIntegration = await SocialIntegrations.findOne({
+      "platform_data.facebook.page_id": page_id,
+    });
+
+    if (!userIntegration) {
+      return NextResponse.json({ error: "Page not found in user integrations" }, { status: 404 });
     }
 
-    const { access_token } = page;
+    const { page_access_token } = userIntegration.token_info; 
 
     const response = await fetch(
-      `https://graph.facebook.com/v22.0/${page_id}?fields=instagram_business_account&access_token=${access_token}`,
+      `https://graph.facebook.com/v22.0/${page_id}?fields=instagram_business_account&access_token=${page_access_token}`,
       {
         method: "GET",
         headers: { "Content-Type": "application/json" },
@@ -46,16 +54,12 @@ export async function POST(request) {
 
     const instagram_id = data.instagram_business_account.id;
 
-    const existingInsta = await Insta.findOne({ instagram_id });
+    userIntegration.platform_data.instagram = {
+      ig_business_id: instagram_id,
+      connected_at: new Date(), 
+    };
 
-    if (existingInsta) {
-      return NextResponse.json(
-        { error: "Insta already exists" },
-        { status: 400 }
-      );
-    }
-
-    await createInsta({ access_token, instagram_id });
+    await userIntegration.save();
 
     return NextResponse.json(
       {

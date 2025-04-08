@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { dbConnect } from "@/lib/mongo";
-import { createWhats } from "@/queries/whatsapp";
-import { Page } from "@/model/page-model";
+import { SocialIntegrations } from "@/model/sociaIntegration-model"; 
 
 export async function POST(request) {
   try {
@@ -9,12 +8,15 @@ export async function POST(request) {
 
     await dbConnect();
 
-    const page = await Page.findOne({ page_id });
-    if (!page) {
-      return NextResponse.json({ error: "Page not found" }, { status: 404 });
+    const userIntegration = await SocialIntegrations.findOne({
+      "platform_data.facebook.page_id": page_id,
+    });
+
+    if (!userIntegration) {
+      return NextResponse.json({ error: "Page not found in user integrations" }, { status: 404 });
     }
 
-    const { access_token, user_access_token } = page;
+    const { user_access_token } = userIntegration.token_info;
 
     const businessIdResponse = await fetch(
       `https://graph.facebook.com/v22.0/me/businesses?access_token=${user_access_token}`
@@ -60,14 +62,15 @@ export async function POST(request) {
     const name = phoneNumberIdData.data[0].verified_name;
     const phone_number = phoneNumberIdData.data[0].display_phone_number;
 
-    await createWhats({
-      name,
-      phone_number,
-      whatsapp_business_account_id: waba,
+    userIntegration.platform_data.whatsapp = {
+      verified_name: name,
+      business_phone_number: phone_number,
+      business_account_id: waba,
       phone_number_id,
-      user_access_token,
-      access_token,
-    });
+      connected_at: new Date(), 
+    };
+
+    await userIntegration.save();
 
     return NextResponse.json(
       { message: "Phone number ID have stored successfully", whatsappId: waba },

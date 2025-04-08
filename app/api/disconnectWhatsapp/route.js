@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { dbConnect } from "@/lib/mongo";
-import { Whats } from "@/model/whatsapp-model";
+import { SocialIntegrations } from "@/model/sociaIntegration-model";
 
 export async function POST(request) {
     try {
@@ -15,9 +15,14 @@ export async function POST(request) {
 
         await dbConnect();
 
-        const result = await Whats.deleteOne({ whatsapp_business_account_id });
+        const result = await SocialIntegrations.updateOne(
+            { "platform_data.whatsapp.business_account_id": whatsapp_business_account_id },
+            {
+                $set: { "platform_data.whatsapp": {} },
+            }
+        );
 
-        if (result.deletedCount === 0) {
+        if (result.modifiedCount === 0) {
             return NextResponse.json(
                 { error: "WhatsApp account not found" },
                 { status: 404 }
