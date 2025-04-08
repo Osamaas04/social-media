@@ -1,5 +1,5 @@
 import { dbConnect } from "@/lib/mongo";
-import { SocialIntegrations } from "@/model/social-integrations"; // Assuming this is the correct import path
+import { SocialIntegrations } from "@/model/sociaIntegration-model"; 
 import { NextResponse } from "next/server";
 
 export async function POST(request) {
