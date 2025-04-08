@@ -49,7 +49,6 @@ const PlatformDataSchema = new Schema({
 const SocialIntegrationsSchema = new Schema({
     user_id: { type: String, required: true },
     token_info: { type: TokenInfoSchema, default: () => ({}) },
-    isActive: { type: Boolean, default: false },
     platform_data: { type: PlatformDataSchema, default: () => ({}) },
 }, { timestamps: true });
 

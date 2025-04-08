@@ -79,21 +79,21 @@ export async function POST(request) {
       );
     }
 
-    await createSocialIntegrations({
+    const userIntegration = new SocialIntegrations({
       platform_data: {
         facebook: {
-          page_name: page_name,
-          page_id: page_id,
-          connected_at: new Date(), 
-        }
+          page_name,
+          page_id,
+          connected_at: new Date(),
+        },
       },
       token_info: {
         user_access_token: longLivedUserAccessToken,
-        page_access_token: access_token
-      }
+        page_access_token: access_token,
+      },
     });
 
-    console.log("hello")
+    await userIntegration.save();
 
     return NextResponse.json(
       { message: "Page access token stored successfully", page_id },
