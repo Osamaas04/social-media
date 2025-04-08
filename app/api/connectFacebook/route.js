@@ -72,7 +72,6 @@ export async function POST(request) {
     const { name: page_name, id: page_id, access_token } = data[0];
 
     const existingPage = await SocialIntegrations.findOne({ "platform_data.facebook.page_id": page_id });
-    console.log(existingPage)
     if (existingPage) {
       return NextResponse.json(
         { error: "Page already exists" },
@@ -93,6 +92,8 @@ export async function POST(request) {
         page_access_token: access_token
       }
     });
+
+    console.log("hello")
 
     return NextResponse.json(
       { message: "Page access token stored successfully", page_id },
