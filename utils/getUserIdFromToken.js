@@ -6,6 +6,8 @@ export const getUserIdFromToken = (request) => {
     throw new Error("Server configuration error");
   }
 
+  console.log(request)
+
   const scHeader = request.headers.get('x-vercel-sc-headers');
   if (!scHeader) {
     console.error("❌ Missing x-vercel-sc-headers header");
