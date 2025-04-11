@@ -84,14 +84,15 @@ export async function POST(request) {
       );
     }
 
-    console.log(existingPage)
-
     const cookieHeader = request.headers.get("cookie") || "";
+    console.log(cookieHeader)
     const parsed = cookie.parse(cookieHeader);
+    console.log(parsed)
     const token = parsed.token;
+    console.log(token)
     const decoded = jwt.decode(token);
+    console.log(decoded)
     const user_id = decoded.user_id
-
     console.log(user_id)
 
     const userIntegration = new SocialIntegrations({
