@@ -83,6 +83,9 @@ export async function POST(request) {
       );
     }
 
+    console.log(existingPage)
+    console.log(user_id)
+
     const userIntegration = new SocialIntegrations({
       user_id,
       platform_data: {
