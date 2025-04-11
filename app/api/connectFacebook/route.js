@@ -13,10 +13,12 @@ export async function OPTIONS() {
 }
 
 function withCORS(response) {
+  response.headers.delete("Access-Control-Allow-Origin"); 
   response.headers.set("Access-Control-Allow-Origin", "https://replix-livid.vercel.app");
   response.headers.set("Access-Control-Allow-Credentials", "true");
   return response;
 }
+
 
 export async function POST(request) {
   try {
