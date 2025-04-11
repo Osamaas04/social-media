@@ -31,7 +31,8 @@ export const getUserIdFromToken = (request) => {
   }
 
   try {
-    const decoded = jwt.decode(token);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    console.log(decoded)
     return decoded.uid;
   } catch (error) {
     console.error("❌ Token verification failed:", error.message);
