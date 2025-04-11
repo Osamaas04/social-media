@@ -1,14 +1,17 @@
 import { NextResponse } from "next/server";
 import { dbConnect } from "@/lib/mongo";
 import { SocialIntegrations } from "@/model/sociaIntegration-model"; 
+import { getUserIdFromToken } from "@/utils/getUserIdFromToken";
 
 export async function POST(request) {
   try {
     const { page_id } = await request.json();
+    const user_id = getUserIdFromToken();
 
     await dbConnect();
 
     const userIntegration = await SocialIntegrations.findOne({
+      user_id,
       "platform_data.facebook.page_id": page_id,
     });
 

@@ -1,11 +1,15 @@
 import { NextResponse } from "next/server";
 import { dbConnect } from "@/lib/mongo";
-import { createSocialIntegrations } from "@/queries/sociaIntegration";
+import { getUserIdFromToken } from "@/utils/getUserIdFromToken";
 import { SocialIntegrations } from "@/model/sociaIntegration-model";
+
 
 export async function POST(request) {
   try {
+
     const { code } = await request.json();
+    const user_id = getUserIdFromToken();
+
     if (!code) {
       return NextResponse.json(
         { error: "Missing authorization code" },
@@ -80,6 +84,7 @@ export async function POST(request) {
     }
 
     const userIntegration = new SocialIntegrations({
+      user_id,
       platform_data: {
         facebook: {
           page_name,
