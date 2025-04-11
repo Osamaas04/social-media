@@ -3,12 +3,14 @@ import { dbConnect } from "@/lib/mongo";
 import { getUserIdFromToken } from "@/utils/getUserIdFromToken";
 import { SocialIntegrations } from "@/model/sociaIntegration-model";
 
-
 export async function POST(request) {
   try {
 
     const { code } = await request.json();
     const user_id = getUserIdFromToken();
+
+    console.log(code)
+    console.log(user_id)
 
     if (!code) {
       return NextResponse.json(
