@@ -6,8 +6,9 @@ import { SocialIntegrations } from "@/model/sociaIntegration-model";
 export async function POST(request) {
   try {
 
-    const { code } = await request.json();
     const user_id = getUserIdFromToken(request);
+    const { code } = await request.json();
+    
 
     if (!user_id) throw new Error("User ID is undefined");
 
