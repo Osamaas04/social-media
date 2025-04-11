@@ -12,12 +12,12 @@ import { SocialIntegrations } from "@/model/sociaIntegration-model";
 //   return response;
 // }
 
-function withCORS(response) {
-  response.headers.delete("Access-Control-Allow-Origin"); 
-  response.headers.set("Access-Control-Allow-Origin", "https://replix-livid.vercel.app");
-  response.headers.set("Access-Control-Allow-Credentials", "true");
-  return response;
-}
+// function withCORS(response) {
+//   response.headers.delete("Access-Control-Allow-Origin"); 
+//   response.headers.set("Access-Control-Allow-Origin", "https://replix-livid.vercel.app");
+//   response.headers.set("Access-Control-Allow-Credentials", "true");
+//   return response;
+// }
 
 
 export async function POST(request) {
@@ -28,9 +28,9 @@ export async function POST(request) {
     console.log(user_id);
 
     if (!code) {
-      return withCORS(
-        NextResponse.json({ error: "Missing authorization code" }, { status: 400 })
-      );
+
+      NextResponse.json({ error: "Missing authorization code" }, { status: 400 })
+
     }
 
     const userAccessTokenResponse = await fetch(
@@ -38,9 +38,9 @@ export async function POST(request) {
     );
 
     if (!userAccessTokenResponse.ok) {
-      return withCORS(
-        NextResponse.json({ error: "Failed to fetch user access token" }, { status: 400 })
-      );
+
+      NextResponse.json({ error: "Failed to fetch user access token" }, { status: 400 })
+
     }
 
     const userAccessTokenData = await userAccessTokenResponse.json();
@@ -51,9 +51,9 @@ export async function POST(request) {
       console.log("Database connected successfully");
     } catch (error) {
       console.error("Error connecting to the database", error);
-      return withCORS(
-        NextResponse.json({ error: "Database connection failed" }, { status: 500 })
-      );
+
+      NextResponse.json({ error: "Database connection failed" }, { status: 500 })
+
     }
 
     const longLivedUserAccessTokenResponse = await fetch(
@@ -61,9 +61,9 @@ export async function POST(request) {
     );
 
     if (!longLivedUserAccessTokenResponse.ok) {
-      return withCORS(
-        NextResponse.json({ error: "Failed to fetch long-lived user access token" }, { status: 400 })
-      );
+
+      NextResponse.json({ error: "Failed to fetch long-lived user access token" }, { status: 400 })
+
     }
 
     const longLivedUserAccessTokenData = await longLivedUserAccessTokenResponse.json();
@@ -74,17 +74,17 @@ export async function POST(request) {
     );
 
     if (!pageAccessTokenResponse.ok) {
-      return withCORS(
-        NextResponse.json({ error: "Failed to fetch page access token" }, { status: 400 })
-      );
+
+      NextResponse.json({ error: "Failed to fetch page access token" }, { status: 400 })
+
     }
 
     const { data } = await pageAccessTokenResponse.json();
 
     if (!data.length) {
-      return withCORS(
-        NextResponse.json({ error: "No pages found" }, { status: 400 })
-      );
+
+      NextResponse.json({ error: "No pages found" }, { status: 400 })
+
     }
 
     const { name: page_name, id: page_id, access_token } = data[0];
@@ -94,9 +94,9 @@ export async function POST(request) {
     });
 
     if (existingPage) {
-      return withCORS(
-        NextResponse.json({ error: "Page already exists" }, { status: 400 })
-      );
+
+      NextResponse.json({ error: "Page already exists" }, { status: 400 })
+
     }
 
     const userIntegration = new SocialIntegrations({
@@ -116,15 +116,15 @@ export async function POST(request) {
 
     await userIntegration.save();
 
-    return withCORS(
-      NextResponse.json(
-        { message: "Page access token stored successfully", page_id },
-        { status: 200 }
-      )
-    );
+
+    NextResponse.json(
+      { message: "Page access token stored successfully", page_id },
+      { status: 200 }
+    )
+
   } catch (error) {
-    return withCORS(
-      NextResponse.json({ error: error.message }, { status: 500 })
-    );
+
+    NextResponse.json({ error: error.message }, { status: 500 })
+
   }
 }
