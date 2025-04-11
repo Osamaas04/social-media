@@ -6,7 +6,6 @@ import { SocialIntegrations } from "@/model/sociaIntegration-model";
 export async function POST(request) {
   try {
     const { code } = await request.json();
-    const user_id = getUserIdFromToken(request);
 
     if (!code) {
       return NextResponse.json({ error: "Missing authorization code" }, { status: 400 });
@@ -65,6 +64,17 @@ export async function POST(request) {
     if (existingPage) {
       return NextResponse.json({ error: "Page already exists" }, { status: 400 });
     }
+
+    console.log(request)
+    console.log(request.headers)
+    const cookieHeader = request.headers.get("cookie") || "";
+    console.log(cookieHeader)
+    const parsed = cookie.parse(cookieHeader);
+    console.log(parsed)
+    const token = parsed.token;
+    console.log(token)
+    const decoded = jwt.decode(token);
+    console.log(decoded)
 
     const userIntegration = new SocialIntegrations({
       user_id,
