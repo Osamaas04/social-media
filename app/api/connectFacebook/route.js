@@ -5,7 +5,7 @@ import { SocialIntegrations } from "@/model/sociaIntegration-model";
 
 export async function OPTIONS() {
   const response = new NextResponse(null, { status: 204 });
-  response.headers.set("Access-Control-Allow-Origin", "https://replix-frontend.vercel.app");
+  response.headers.set("Access-Control-Allow-Origin", "https://replix-livid.vercel.app");
   response.headers.set("Access-Control-Allow-Credentials", "true");
   response.headers.set("Access-Control-Allow-Methods", "POST, OPTIONS");
   response.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
@@ -13,7 +13,7 @@ export async function OPTIONS() {
 }
 
 function withCORS(response) {
-  response.headers.set("Access-Control-Allow-Origin", "https://replix-frontend.vercel.app");
+  response.headers.set("Access-Control-Allow-Origin", "https://replix-livid.vercel.app");
   response.headers.set("Access-Control-Allow-Credentials", "true");
   return response;
 }
