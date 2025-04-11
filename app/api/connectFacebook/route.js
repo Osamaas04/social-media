@@ -7,10 +7,8 @@ export async function POST(request) {
   try {
 
     const { code } = await request.json();
-    const user_id = getUserIdFromToken();
 
-    console.log(code)
-    console.log(user_id)
+    console.log(process.env.JWT_SECRET)
 
     if (!code) {
       return NextResponse.json(
@@ -86,10 +84,8 @@ export async function POST(request) {
     }
 
     console.log(existingPage)
-    console.log(user_id)
 
     const userIntegration = new SocialIntegrations({
-      user_id,
       platform_data: {
         facebook: {
           page_name,
