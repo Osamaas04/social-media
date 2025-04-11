@@ -3,19 +3,14 @@ import { dbConnect } from "@/lib/mongo";
 import { getUserIdFromToken } from "@/utils/getUserIdFromToken";
 import { SocialIntegrations } from "@/model/sociaIntegration-model";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "https://frontend.replix.space",
-  "Access-Control-Allow-Credentials": "true"
-};
 
 export async function POST(request) {
   try {
-    const authHeader = request.headers.get("Authorization");
+    const authHeader = request.headers.get("cookie");
     console.log(authHeader)
     if (!authHeader) {
       return NextResponse.json({ error: "Authorization header missing" }, {
         status: 401,
-        headers: corsHeaders
       });
     }
 
@@ -23,7 +18,6 @@ export async function POST(request) {
     if (!token) {
       return NextResponse.json({ error: "Token missing" }, {
         status: 401,
-        headers: corsHeaders
       });
     }
 
@@ -31,7 +25,6 @@ export async function POST(request) {
     if (!userId) {
       return NextResponse.json({ error: "Invalid token" }, {
         status: 401,
-        headers: corsHeaders
       });
     }
 
@@ -39,7 +32,6 @@ export async function POST(request) {
     if (!code) {
       return NextResponse.json({ error: "Missing authorization code" }, {
         status: 400,
-        headers: corsHeaders
       });
     }
 
@@ -50,7 +42,6 @@ export async function POST(request) {
     if (!userAccessTokenResponse.ok) {
       return NextResponse.json({ error: "Failed to fetch user access token" }, {
         status: 400,
-        headers: corsHeaders
       });
     }
 
@@ -64,7 +55,6 @@ export async function POST(request) {
       console.error("Error connecting to the database", error);
       return NextResponse.json({ error: "Database connection failed" }, {
         status: 500,
-        headers: corsHeaders
       });
     }
 
@@ -75,7 +65,6 @@ export async function POST(request) {
     if (!longLivedUserAccessTokenResponse.ok) {
       return NextResponse.json({ error: "Failed to fetch long-lived user access token" }, {
         status: 400,
-        headers: corsHeaders
       });
     }
 
@@ -89,7 +78,6 @@ export async function POST(request) {
     if (!pageAccessTokenResponse.ok) {
       return NextResponse.json({ error: "Failed to fetch page access token" }, {
         status: 400,
-        headers: corsHeaders
       });
     }
 
@@ -98,7 +86,6 @@ export async function POST(request) {
     if (!data.length) {
       return NextResponse.json({ error: "No pages found" }, {
         status: 400,
-        headers: corsHeaders
       });
     }
 
@@ -111,7 +98,6 @@ export async function POST(request) {
     if (existingPage) {
       return NextResponse.json({ error: "Page already exists" }, {
         status: 400,
-        headers: corsHeaders
       });
     }
 
@@ -136,13 +122,11 @@ export async function POST(request) {
       { message: "Page access token stored successfully", page_id },
       {
         status: 200,
-        headers: corsHeaders
       }
     );
   } catch (error) {
     return NextResponse.json({ error: error.message }, {
       status: 500,
-      headers: corsHeaders
     });
   }
 }
