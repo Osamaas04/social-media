@@ -84,6 +84,9 @@ export async function POST(request) {
       );
     }
 
+    console.log(request.headers)
+    console.log(request)
+
     const cookieHeader = request.headers.get("cookie") || "";
     console.log(cookieHeader)
     const parsed = cookie.parse(cookieHeader);
