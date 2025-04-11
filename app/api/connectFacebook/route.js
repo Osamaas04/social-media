@@ -3,36 +3,44 @@ import { dbConnect } from "@/lib/mongo";
 import { getUserIdFromToken } from "@/utils/getUserIdFromToken";
 import { SocialIntegrations } from "@/model/sociaIntegration-model";
 
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "https://replix-livid.vercel.app",
+  "Access-Control-Allow-Credentials": "true"
+};
+
 export async function POST(request) {
   try {
-
     const authHeader = request.headers.get("Authorization");
+    console.log(authHeader)
     if (!authHeader) {
-      return NextResponse.json({ error: "Authorization header missing" }, { status: 401 });
+      return NextResponse.json({ error: "Authorization header missing" }, {
+        status: 401,
+        headers: corsHeaders
+      });
     }
 
-    console.log(authHeader)
-
-    // Extract token from "Bearer <token>"
     const token = authHeader.split(" ")[1];
     if (!token) {
-      return NextResponse.json({ error: "Token missing" }, { status: 401 });
+      return NextResponse.json({ error: "Token missing" }, {
+        status: 401,
+        headers: corsHeaders
+      });
     }
-    console.log(token)
 
-    // Verify token and get user ID
     const userId = await getUserIdFromToken(token);
     if (!userId) {
-      return NextResponse.json({ error: "Invalid token" }, { status: 401 });
+      return NextResponse.json({ error: "Invalid token" }, {
+        status: 401,
+        headers: corsHeaders
+      });
     }
 
-    
-
-    // Rest of your existing code
     const { code } = await request.json();
-
     if (!code) {
-      return NextResponse.json({ error: "Missing authorization code" }, { status: 400 });
+      return NextResponse.json({ error: "Missing authorization code" }, {
+        status: 400,
+        headers: corsHeaders
+      });
     }
 
     const userAccessTokenResponse = await fetch(
@@ -40,7 +48,10 @@ export async function POST(request) {
     );
 
     if (!userAccessTokenResponse.ok) {
-      return NextResponse.json({ error: "Failed to fetch user access token" }, { status: 400 });
+      return NextResponse.json({ error: "Failed to fetch user access token" }, {
+        status: 400,
+        headers: corsHeaders
+      });
     }
 
     const userAccessTokenData = await userAccessTokenResponse.json();
@@ -51,7 +62,10 @@ export async function POST(request) {
       console.log("Database connected successfully");
     } catch (error) {
       console.error("Error connecting to the database", error);
-      return NextResponse.json({ error: "Database connection failed" }, { status: 500 });
+      return NextResponse.json({ error: "Database connection failed" }, {
+        status: 500,
+        headers: corsHeaders
+      });
     }
 
     const longLivedUserAccessTokenResponse = await fetch(
@@ -59,7 +73,10 @@ export async function POST(request) {
     );
 
     if (!longLivedUserAccessTokenResponse.ok) {
-      return NextResponse.json({ error: "Failed to fetch long-lived user access token" }, { status: 400 });
+      return NextResponse.json({ error: "Failed to fetch long-lived user access token" }, {
+        status: 400,
+        headers: corsHeaders
+      });
     }
 
     const longLivedUserAccessTokenData = await longLivedUserAccessTokenResponse.json();
@@ -70,13 +87,19 @@ export async function POST(request) {
     );
 
     if (!pageAccessTokenResponse.ok) {
-      return NextResponse.json({ error: "Failed to fetch page access token" }, { status: 400 });
+      return NextResponse.json({ error: "Failed to fetch page access token" }, {
+        status: 400,
+        headers: corsHeaders
+      });
     }
 
     const { data } = await pageAccessTokenResponse.json();
 
     if (!data.length) {
-      return NextResponse.json({ error: "No pages found" }, { status: 400 });
+      return NextResponse.json({ error: "No pages found" }, {
+        status: 400,
+        headers: corsHeaders
+      });
     }
 
     const { name: page_name, id: page_id, access_token } = data[0];
@@ -86,10 +109,11 @@ export async function POST(request) {
     });
 
     if (existingPage) {
-      return NextResponse.json({ error: "Page already exists" }, { status: 400 });
+      return NextResponse.json({ error: "Page already exists" }, {
+        status: 400,
+        headers: corsHeaders
+      });
     }
-
-
 
     const userIntegration = new SocialIntegrations({
       user_id: userId,
@@ -110,9 +134,15 @@ export async function POST(request) {
 
     return NextResponse.json(
       { message: "Page access token stored successfully", page_id },
-      { status: 200 }
+      {
+        status: 200,
+        headers: corsHeaders
+      }
     );
   } catch (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: error.message }, {
+      status: 500,
+      headers: corsHeaders
+    });
   }
 }
