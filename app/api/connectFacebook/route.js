@@ -4,7 +4,7 @@ import { getUserIdFromToken } from "@/utils/getUserIdFromToken";
 import { SocialIntegrations } from "@/model/sociaIntegration-model";
 
 const corsHeaders = {
-  "Access-Control-Allow-Origin": "https://replix-livid.vercel.app",
+  "Access-Control-Allow-Origin": "https://frontend.replix.space",
   "Access-Control-Allow-Credentials": "true"
 };
 
