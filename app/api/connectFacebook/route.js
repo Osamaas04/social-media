@@ -5,6 +5,30 @@ import { SocialIntegrations } from "@/model/sociaIntegration-model";
 
 export async function POST(request) {
   try {
+
+    const authHeader = request.headers.get("Authorization");
+    if (!authHeader) {
+      return NextResponse.json({ error: "Authorization header missing" }, { status: 401 });
+    }
+
+    console.log(authHeader)
+
+    // Extract token from "Bearer <token>"
+    const token = authHeader.split(" ")[1];
+    if (!token) {
+      return NextResponse.json({ error: "Token missing" }, { status: 401 });
+    }
+    console.log(token)
+
+    // Verify token and get user ID
+    const userId = await getUserIdFromToken(token);
+    if (!userId) {
+      return NextResponse.json({ error: "Invalid token" }, { status: 401 });
+    }
+
+    
+
+    // Rest of your existing code
     const { code } = await request.json();
 
     if (!code) {
@@ -65,19 +89,10 @@ export async function POST(request) {
       return NextResponse.json({ error: "Page already exists" }, { status: 400 });
     }
 
-    console.log(request)
-    console.log(request.headers)
-    const cookieHeader = request.headers.get("cookie") || "";
-    console.log(cookieHeader)
-    const parsed = cookie.parse(cookieHeader);
-    console.log(parsed)
-    const token = parsed.token;
-    console.log(token)
-    const decoded = jwt.decode(token);
-    console.log(decoded)
+
 
     const userIntegration = new SocialIntegrations({
-      user_id,
+      user_id: userId,
       platform_data: {
         facebook: {
           page_name,
