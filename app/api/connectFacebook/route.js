@@ -1,16 +1,15 @@
 import { NextResponse } from "next/server";
 import { dbConnect } from "@/lib/mongo";
-import { getUserIdFromToken } from "@/utils/getUserIdFromToken";
+import jwt from 'jsonwebtoken';
+import cookie from 'cookie';
+
 import { SocialIntegrations } from "@/model/sociaIntegration-model";
 
 export async function POST(request) {
   try {
 
-    const user_id = getUserIdFromToken(request);
     const { code } = await request.json();
-    
 
-    if (!user_id) throw new Error("User ID is undefined");
 
     if (!code) {
       return NextResponse.json(
@@ -86,6 +85,13 @@ export async function POST(request) {
     }
 
     console.log(existingPage)
+
+    const cookieHeader = request.headers.get("cookie") || "";
+    const parsed = cookie.parse(cookieHeader);
+    const token = parsed.token;
+    const decoded = jwt.decode(token);
+    const user_id = decoded.user_id
+
     console.log(user_id)
 
     const userIntegration = new SocialIntegrations({
