@@ -7,8 +7,9 @@ export async function POST(request) {
   try {
 
     const { code } = await request.json();
+    const user_id = getUserIdFromToken(request);
 
-    console.log(process.env.JWT_SECRET)
+    if (!user_id) throw new Error("User ID is undefined");
 
     if (!code) {
       return NextResponse.json(
@@ -84,8 +85,10 @@ export async function POST(request) {
     }
 
     console.log(existingPage)
+    console.log(user_id)
 
     const userIntegration = new SocialIntegrations({
+      user_id,
       platform_data: {
         facebook: {
           page_name,

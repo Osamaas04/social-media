@@ -1,11 +1,10 @@
 
-import { cookies } from 'next/headers';
 import jwt from 'jsonwebtoken';
 import cookie from 'cookie';
 
-export const getUserIdFromToken = () => {
-    const cookieHeader = cookies().toString();
-    const parsed = cookie.parse(cookieHeader || '');
+export const getUserIdFromToken = (request) => {
+    const cookieHeader = request.headers.get("cookie") || "";
+    const parsed = cookie.parse(cookieHeader);
     const token = parsed.token;
 
     if (!token) {
@@ -19,3 +18,4 @@ export const getUserIdFromToken = () => {
         throw new Error("Invalid or expired token");
     }
 };
+
