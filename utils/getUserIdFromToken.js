@@ -1,19 +1,32 @@
 import jwt from 'jsonwebtoken';
-import cookie from 'cookie';
 
 export const getUserIdFromToken = (request) => {
-  // Check if JWT_SECRET is set
   if (!process.env.JWT_SECRET) {
     console.error("❌ JWT_SECRET is not defined in environment variables");
     throw new Error("Server configuration error");
   }
 
-  const cookieHeader = request.headers.get("cookie") || "";
-  const parsed = cookie.parse(cookieHeader);
-  const token = parsed.token;
+  const scHeader = request.headers.get('x-vercel-sc-headers');
+  if (!scHeader) {
+    console.error("❌ Missing x-vercel-sc-headers header");
+    throw new Error("Missing authentication header");
+  }
+
+  let token;
+  try {
+    const parsedHeaders = JSON.parse(scHeader);
+    const authHeader = parsedHeaders.Authorization || parsedHeaders.authorization;
+
+    if (authHeader?.startsWith("Bearer ")) {
+      token = authHeader.slice(7);
+    }
+  } catch (err) {
+    console.error("❌ Failed to parse x-vercel-sc-headers:", err.message);
+    throw new Error("Malformed authentication header");
+  }
 
   if (!token) {
-    console.error("❌ No token found in cookies");
+    console.error("❌ No token found in Authorization header");
     throw new Error("Missing authentication token");
   }
 

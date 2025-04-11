@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { dbConnect } from "@/lib/mongo";
-import jwt from 'jsonwebtoken';
-import cookie from 'cookie';
+import { getUserIdFromToken } from "@/utils/getUserIdFromToken";
 
 import { SocialIntegrations } from "@/model/sociaIntegration-model";
 
@@ -9,8 +8,10 @@ export async function POST(request) {
   try {
 
     const { code } = await request.json();
+    const user_id = getUserIdFromToken(request)
 
-
+    console.log(user_id)
+    
     if (!code) {
       return NextResponse.json(
         { error: "Missing authorization code" },
@@ -83,20 +84,6 @@ export async function POST(request) {
         { status: 400 }
       );
     }
-
-    console.log(request.headers)
-    console.log(request)
-
-    const cookieHeader = request.headers.get("cookie") || "";
-    console.log(cookieHeader)
-    const parsed = cookie.parse(cookieHeader);
-    console.log(parsed)
-    const token = parsed.token;
-    console.log(token)
-    const decoded = jwt.decode(token);
-    console.log(decoded)
-    const user_id = decoded.user_id
-    console.log(user_id)
 
     const userIntegration = new SocialIntegrations({
       user_id,
