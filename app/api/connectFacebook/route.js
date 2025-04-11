@@ -3,34 +3,13 @@ import { dbConnect } from "@/lib/mongo";
 import { getUserIdFromToken } from "@/utils/getUserIdFromToken";
 import { SocialIntegrations } from "@/model/sociaIntegration-model";
 
-// export async function OPTIONS() {
-//   const response = new NextResponse(null, { status: 204 });
-//   response.headers.set("Access-Control-Allow-Origin", "https://replix-livid.vercel.app");
-//   response.headers.set("Access-Control-Allow-Credentials", "true");
-//   response.headers.set("Access-Control-Allow-Methods", "POST, OPTIONS");
-//   response.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
-//   return response;
-// }
-
-// function withCORS(response) {
-//   response.headers.delete("Access-Control-Allow-Origin"); 
-//   response.headers.set("Access-Control-Allow-Origin", "https://replix-livid.vercel.app");
-//   response.headers.set("Access-Control-Allow-Credentials", "true");
-//   return response;
-// }
-
-
 export async function POST(request) {
   try {
     const { code } = await request.json();
     const user_id = getUserIdFromToken(request);
 
-    console.log(user_id);
-
     if (!code) {
-
-      NextResponse.json({ error: "Missing authorization code" }, { status: 400 })
-
+      return NextResponse.json({ error: "Missing authorization code" }, { status: 400 });
     }
 
     const userAccessTokenResponse = await fetch(
@@ -38,9 +17,7 @@ export async function POST(request) {
     );
 
     if (!userAccessTokenResponse.ok) {
-
-      NextResponse.json({ error: "Failed to fetch user access token" }, { status: 400 })
-
+      return NextResponse.json({ error: "Failed to fetch user access token" }, { status: 400 });
     }
 
     const userAccessTokenData = await userAccessTokenResponse.json();
@@ -51,9 +28,7 @@ export async function POST(request) {
       console.log("Database connected successfully");
     } catch (error) {
       console.error("Error connecting to the database", error);
-
-      NextResponse.json({ error: "Database connection failed" }, { status: 500 })
-
+      return NextResponse.json({ error: "Database connection failed" }, { status: 500 });
     }
 
     const longLivedUserAccessTokenResponse = await fetch(
@@ -61,9 +36,7 @@ export async function POST(request) {
     );
 
     if (!longLivedUserAccessTokenResponse.ok) {
-
-      NextResponse.json({ error: "Failed to fetch long-lived user access token" }, { status: 400 })
-
+      return NextResponse.json({ error: "Failed to fetch long-lived user access token" }, { status: 400 });
     }
 
     const longLivedUserAccessTokenData = await longLivedUserAccessTokenResponse.json();
@@ -74,29 +47,23 @@ export async function POST(request) {
     );
 
     if (!pageAccessTokenResponse.ok) {
-
-      NextResponse.json({ error: "Failed to fetch page access token" }, { status: 400 })
-
+      return NextResponse.json({ error: "Failed to fetch page access token" }, { status: 400 });
     }
 
     const { data } = await pageAccessTokenResponse.json();
 
     if (!data.length) {
-
-      NextResponse.json({ error: "No pages found" }, { status: 400 })
-
+      return NextResponse.json({ error: "No pages found" }, { status: 400 });
     }
 
     const { name: page_name, id: page_id, access_token } = data[0];
 
     const existingPage = await SocialIntegrations.findOne({
-      "platform_data.facebook.page_id": page_id
+      "platform_data.facebook.page_id": page_id,
     });
 
     if (existingPage) {
-
-      NextResponse.json({ error: "Page already exists" }, { status: 400 })
-
+      return NextResponse.json({ error: "Page already exists" }, { status: 400 });
     }
 
     const userIntegration = new SocialIntegrations({
@@ -116,15 +83,11 @@ export async function POST(request) {
 
     await userIntegration.save();
 
-
-    NextResponse.json(
+    return NextResponse.json(
       { message: "Page access token stored successfully", page_id },
       { status: 200 }
-    )
-
+    );
   } catch (error) {
-
-    NextResponse.json({ error: error.message }, { status: 500 })
-
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
