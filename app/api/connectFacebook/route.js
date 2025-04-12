@@ -71,33 +71,24 @@ export async function POST(request) {
 
     const { name: page_name, id: page_id, access_token } = data[0];
 
-    const existingPage = await SocialIntegrations.findOne({
-      user_id,
-      "platform_data.facebook.page_id": page_id,
-    });
+    let existingIntegration = await SocialIntegrations.findOne({ user_id });
 
-    if (existingPage) {
-      return NextResponse.json({ error: "Page already exists" }, {
-        status: 400,
-      });
-    }
+      if (existingIntegration && existingIntegration.platform_data.facebook.page_id === page_id) {
+        return NextResponse.json({ error: "Page already exists" }, { status: 400 });
+      }
 
-    const userIntegration = new SocialIntegrations({
-      user_id,
-      platform_data: {
-        facebook: {
-          page_name,
-          page_id,
-          connected_at: new Date(),
-        },
-      },
-      token_info: {
+      existingIntegration.platform_data.facebook = {
+        page_name,
+        page_id,
+        connected_at: new Date(),
+      };
+
+      existingIntegration.token_info = {
         user_access_token: longLivedUserAccessToken,
         page_access_token: access_token,
-      },
-    });
+      };
 
-    await userIntegration.save();
+    await existingIntegration.save();
 
     return NextResponse.json(
       { message: "Page access token stored successfully", page_id },
@@ -105,6 +96,7 @@ export async function POST(request) {
         status: 200,
       }
     );
+
   } catch (error) {
     return NextResponse.json({ error: error.message }, {
       status: 500,
