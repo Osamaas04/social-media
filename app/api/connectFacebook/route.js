@@ -71,7 +71,7 @@ export async function POST(request) {
 
     const { name: page_name, id: page_id, access_token } = data[0];
 
-    let existingIntegration = await SocialIntegrations.findOne({ user_id });
+    const existingIntegration = await SocialIntegrations.findOne({ user_id });
 
       if (existingIntegration && existingIntegration.platform_data.facebook.page_id === page_id) {
         return NextResponse.json({ error: "Page already exists" }, { status: 400 });

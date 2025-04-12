@@ -5,21 +5,17 @@ import { getUserIdFromToken } from "@/utils/getUserIdFromToken";
 
 export async function POST(request) {
   try {
-    const { page_id } = await request.json();
-    const user_id = getUserIdFromToken();
+    const user_id = getUserIdFromToken(request)
 
     await dbConnect();
 
-    const userIntegration = await SocialIntegrations.findOne({
-      user_id,
-      "platform_data.facebook.page_id": page_id,
-    });
+    const existingIntegration = await SocialIntegrations.findOne({ user_id });
 
-    if (!userIntegration) {
-      return NextResponse.json({ error: "Page not found in user integrations" }, { status: 404 });
+    if (!existingIntegration) {
+      return NextResponse.json({ error: "USer not found in user integrations" }, { status: 404 });
     }
 
-    const { user_access_token } = userIntegration.token_info;
+    const { user_access_token } = existingIntegration.token_info;
 
     const businessIdResponse = await fetch(
       `https://graph.facebook.com/v22.0/me/businesses?access_token=${user_access_token}`
@@ -65,7 +61,7 @@ export async function POST(request) {
     const name = phoneNumberIdData.data[0].verified_name;
     const phone_number = phoneNumberIdData.data[0].display_phone_number;
 
-    userIntegration.platform_data.whatsapp = {
+    existingIntegration.platform_data.whatsapp = {
       verified_name: name,
       business_phone_number: phone_number,
       business_account_id: waba,
@@ -73,7 +69,7 @@ export async function POST(request) {
       connected_at: new Date(), 
     };
 
-    await userIntegration.save();
+    await existingIntegration.save();
 
     return NextResponse.json(
       { message: "Phone number ID have stored successfully", whatsappId: waba },

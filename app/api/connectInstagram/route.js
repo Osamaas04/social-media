@@ -5,28 +5,19 @@ import { getUserIdFromToken } from "@/utils/getUserIdFromToken";
 
 export async function POST(request) {
   try {
-    const { page_id } = await request.json();
-    const user_id = getUserIdFromToken();
 
-    if (!page_id) {
-      return NextResponse.json(
-        { error: "Missing page_id" },
-        { status: 400 }
-      );
-    }
+    const user_id = getUserIdFromToken(request)
 
     await dbConnect();
 
-    const userIntegration = await SocialIntegrations.findOne({
-      user_id,
-      "platform_data.facebook.page_id": page_id,
-    });
+    const existingIntegration = await SocialIntegrations.findOne({ user_id });
 
-    if (!userIntegration) {
-      return NextResponse.json({ error: "Page not found in user integrations" }, { status: 404 });
+    if (!existingIntegration) {
+      return NextResponse.json({ error: "USer not found in user integrations" }, { status: 404 });
     }
 
-    const { page_access_token } = userIntegration.token_info; 
+    const { page_access_token } = existingIntegration.token_info;
+    const { page_id } = existingIntegration.platform_data.facebook;
 
     const response = await fetch(
       `https://graph.facebook.com/v22.0/${page_id}?fields=instagram_business_account&access_token=${page_access_token}`,
@@ -57,12 +48,12 @@ export async function POST(request) {
 
     const instagram_id = data.instagram_business_account.id;
 
-    userIntegration.platform_data.instagram = {
+    existingIntegration.platform_data.instagram = {
       ig_business_id: instagram_id,
-      connected_at: new Date(), 
+      connected_at: new Date(),
     };
 
-    await userIntegration.save();
+    await existingIntegration.save();
 
     return NextResponse.json(
       {
