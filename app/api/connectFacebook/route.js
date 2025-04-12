@@ -1,32 +1,10 @@
 import { NextResponse } from "next/server";
 import { dbConnect } from "@/lib/mongo";
-import { getUserIdFromToken } from "@/utils/getUserIdFromToken";
 import { SocialIntegrations } from "@/model/sociaIntegration-model";
 
 
 export async function POST(request) {
   try {
-    const authHeader = request.headers.get("cookie");
-    console.log(authHeader)
-    if (!authHeader) {
-      return NextResponse.json({ error: "Authorization header missing" }, {
-        status: 401,
-      });
-    }
-
-    const token = authHeader.split(" ")[1];
-    if (!token) {
-      return NextResponse.json({ error: "Token missing" }, {
-        status: 401,
-      });
-    }
-
-    const userId = await getUserIdFromToken(token);
-    if (!userId) {
-      return NextResponse.json({ error: "Invalid token" }, {
-        status: 401,
-      });
-    }
 
     const { code } = await request.json();
     if (!code) {
@@ -102,7 +80,6 @@ export async function POST(request) {
     }
 
     const userIntegration = new SocialIntegrations({
-      user_id: userId,
       platform_data: {
         facebook: {
           page_name,
