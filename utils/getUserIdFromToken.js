@@ -1,21 +1,15 @@
-import jwt from 'jsonwebtoken';
-import cookie from 'cookie';
+import { NextResponse } from "next/server";
 
 export const getUserIdFromToken = (request) => {
-  const cookieHeader = request.headers.get("cookie") || "";
-  const parsed = cookie.parse(cookieHeader);
-  const token = parsed.token;
+    try {
+        const userId = request.headers.get('x-user-id');
 
-  if (!token) {
-    console.error("❌ No token found in cookies");
-    throw new Error("Missing authentication token");
-  }
+        if (!userId) {
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        }
 
-  try {
-    const decoded = jwt.decode(token);
-    return decoded.uid;
-  } catch (error) {
-    console.error("❌ Token verification failed:", error.message);
-    throw new Error("Invalid or expired token");
-  }
+        return userId;
+    } catch (error) {
+        return NextResponse.json({ error: error.message }, { status: 500 });
+    }
 };

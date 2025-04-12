@@ -1,10 +1,12 @@
 import { NextResponse } from "next/server";
 import { dbConnect } from "@/lib/mongo";
 import { SocialIntegrations } from "@/model/sociaIntegration-model";
-
+import { getUserIdFromToken } from "@/utils/getUserIdFromToken";
 
 export async function POST(request) {
   try {
+
+    const user_id = getUserIdFromToken(request)
 
     const { code } = await request.json();
     if (!code) {
@@ -70,6 +72,7 @@ export async function POST(request) {
     const { name: page_name, id: page_id, access_token } = data[0];
 
     const existingPage = await SocialIntegrations.findOne({
+      user_id,
       "platform_data.facebook.page_id": page_id,
     });
 
@@ -80,6 +83,7 @@ export async function POST(request) {
     }
 
     const userIntegration = new SocialIntegrations({
+      user_id,
       platform_data: {
         facebook: {
           page_name,
