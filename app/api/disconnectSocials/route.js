@@ -1,9 +1,11 @@
 import { NextResponse } from "next/server";
 import { dbConnect } from "@/lib/mongo";
 import { SocialIntegrations } from "@/model/sociaIntegration-model";
+import { getUserIdFromToken } from "@/utils/getUserIdFromToken";
 
 export async function POST(request) {
     try {
+        const user_id = getUserIdFromToken(request);
         const { platform, id } = await request.json();
 
         if (!platform || !id) {
@@ -15,12 +17,10 @@ export async function POST(request) {
 
         await dbConnect();
 
-        let query = {};
         let update = {};
 
         switch (platform) {
             case 'facebook':
-                query = { "platform_data.facebook.page_id": id };
                 update = {
                     $set: {
                         "platform_data.facebook": {
@@ -36,7 +36,6 @@ export async function POST(request) {
                 break;
 
             case 'instagram':
-                query = { "platform_data.instagram.ig_business_id": id };
                 update = {
                     $set: {
                         "platform_data.instagram": {
@@ -49,7 +48,6 @@ export async function POST(request) {
                 break;
 
             case 'whatsapp':
-                query = { "platform_data.whatsapp.business_account_id": id };
                 update = {
                     $set: {
                         "platform_data.whatsapp": {
@@ -71,7 +69,7 @@ export async function POST(request) {
                 );
         }
 
-        const result = await SocialIntegrations.updateOne(query, update);
+        const result = await SocialIntegrations.updateOne(user_id, update);
 
         if (result.modifiedCount === 0) {
             return NextResponse.json(
