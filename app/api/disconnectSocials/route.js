@@ -69,7 +69,7 @@ export async function POST(request) {
                 );
         }
 
-        const result = await SocialIntegrations.updateOne(user_id, update);
+        const result = await SocialIntegrations.updateOne({ user_id }, update);
 
         if (result.modifiedCount === 0) {
             return NextResponse.json(
