@@ -15,18 +15,55 @@ export async function POST(request) {
 
         await dbConnect();
 
-        let platformField;
+        let query = {};
+        let update = {};
 
         switch (platform) {
             case 'facebook':
-                platformField = "platform_data.facebook.page_id";
+                query = { "platform_data.facebook.page_id": id };
+                update = {
+                    $set: {
+                        "platform_data.facebook": {
+                            page_name: null,
+                            page_id: null,
+                            status: "inactive",
+                            connected_at: null
+                        },
+                        "token_info.page_access_token": null,
+                        "token_info.user_access_token": null
+                    }
+                };
                 break;
+
             case 'instagram':
-                platformField = "platform_data.instagram.ig_business_id";
+                query = { "platform_data.instagram.ig_business_id": id };
+                update = {
+                    $set: {
+                        "platform_data.instagram": {
+                            ig_business_id: null,
+                            status: "inactive",
+                            connected_at: null
+                        }
+                    }
+                };
                 break;
+
             case 'whatsapp':
-                platformField = "platform_data.whatsapp.business_account_id";
+                query = { "platform_data.whatsapp.business_account_id": id };
+                update = {
+                    $set: {
+                        "platform_data.whatsapp": {
+                            verified_name: null,
+                            business_phone_number: null,
+                            business_account_id: null,
+                            phone_number_id: null,
+                            status: "inactive",
+                            connected_at: null
+                        }
+                    }
+                };
                 break;
+
             default:
                 return NextResponse.json(
                     { error: "Invalid platform" },
@@ -34,14 +71,7 @@ export async function POST(request) {
                 );
         }
 
-        const result = await SocialIntegrations.updateOne(
-            { [platformField]: id },
-            {
-                $set: {
-                    [`platform_data.${platform}`]: {}
-                },
-            }
-        );
+        const result = await SocialIntegrations.updateOne(query, update);
 
         if (result.modifiedCount === 0) {
             return NextResponse.json(
@@ -51,9 +81,10 @@ export async function POST(request) {
         }
 
         return NextResponse.json(
-            { message: `${platform.charAt(0).toUpperCase() + platform.slice(1)} account deleted successfully` },
+            { message: `${platform.charAt(0).toUpperCase() + platform.slice(1)} account disconnected and data deleted successfully` },
             { status: 200 }
         );
+
     } catch (error) {
         console.error("Error:", error);
         return NextResponse.json(
