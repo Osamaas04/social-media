@@ -1,14 +1,14 @@
 import { dbConnect } from "@/lib/mongo";
 import { SocialIntegrations } from "@/model/sociaIntegration-model"; 
+import { getUserIdFromToken } from "@/utils/getUserIdFromToken";
 import { NextResponse } from "next/server";
 
 export async function POST(request) {
   try {
     const body = await request.json();
-    // Destructure the necessary fields from the request body
-    const { user_id, isActive, platform, instagram_id, whatsapp_id, page_id } = body;
+    const { isActive, platform, instagram_id, whatsapp_id, page_id } = body;
+    const user_id = getUserIdFromToken(request)
 
-    // Validate required fields based on platform
     if (
       !platform ||
       (platform === "Messenger" && !page_id) ||
