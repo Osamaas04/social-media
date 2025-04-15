@@ -1,10 +1,12 @@
 import { NextResponse } from "next/server";
 import { dbConnect } from "@/lib/mongo";
 import { SocialIntegrations } from "@/model/sociaIntegration-model";
+import { getUserIdFromToken } from "@/utils/getUserIdFromToken";
 
 export const POST = async (request) => {
   try {
-    const { platform, platform_id } = await request.json();
+    const { platform } = await request.json();
+    const user_id = getUserIdFromToken(request);
 
     const validPlatforms = ['facebook', 'instagram', 'whatsapp'];
     if (!validPlatforms.includes(platform)) {
@@ -13,16 +15,7 @@ export const POST = async (request) => {
 
     await dbConnect();
 
-    let query = {};
-    if (platform === 'facebook') {
-      query = { "platform_data.facebook.page_id": platform_id };
-    } else if (platform === 'instagram') {
-      query = { "platform_data.instagram.ig_business_id": platform_id };
-    } else if (platform === 'whatsapp') {
-      query = { "platform_data.whatsapp.business_account_id": platform_id };
-    }
-
-    const platformData = await SocialIntegrations.findOne(query);
+    const platformData = await SocialIntegrations.findOne(user_id);
 
     if (platform === 'facebook' && platformData?.token_info?.page_access_token) {
       return NextResponse.json({ isConnected: true });

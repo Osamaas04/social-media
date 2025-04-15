@@ -6,9 +6,9 @@ import { getUserIdFromToken } from "@/utils/getUserIdFromToken";
 export async function POST(request) {
     try {
         const user_id = getUserIdFromToken(request);
-        const { platform, id } = await request.json();
+        const { platform } = await request.json();
 
-        if (!platform || !id) {
+        if (!platform) {
             return NextResponse.json(
                 { error: "Missing platform or ID" },
                 { status: 400 }
