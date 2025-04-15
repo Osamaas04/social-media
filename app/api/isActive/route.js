@@ -88,10 +88,10 @@ export async function POST(request) {
     return NextResponse.json(
       {
         message: "Activation status updated successfully",
-        isActive: updatedStatus,
+        isActive: isActive, 
       },
       { status: 200 }
-    );
+    );    
   } catch (error) {
     return NextResponse.json(
       { error: `Failed to update status: ${error.message}` },
