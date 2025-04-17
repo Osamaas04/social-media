@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { dbConnect } from "@/lib/mongo";
-import { Page } from "@/model/page-model";
+import { SocialIntegrations } from "@/model/sociaIntegration-model";
 import sql from "mssql";
 import { getConnection } from "@/lib/sql";
 
@@ -51,7 +51,7 @@ export async function POST(request) {
       }
     }
 
-    const page = await Page.findOne({ "platform_data.facebook.page_id": recipientId });
+    const page = await SocialIntegrations.findOne({ "platform_data.facebook.page_id": recipientId });
 
     console.log(page)
     console.log(page.user_id)
