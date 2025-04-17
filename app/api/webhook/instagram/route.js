@@ -82,7 +82,7 @@ export async function POST(request) {
     sqlRequest.input("RecipientId", sql.NVarChar(255), recipientId);
     sqlRequest.input("MessageId", sql.NVarChar(255), messageId);
     sqlRequest.input("Text", sql.NVarChar(1000), message);
-    sqlRequest.input("PageAccessToken", sql.NVarChar(255), insta.access_token);
+    sqlRequest.input("PageAccessToken", sql.NVarChar(255), insta.token_info.page_access_token);
     sqlRequest.input("Status", sql.Int, 0);
     sqlRequest.input("CreateAt", sql.DateTime2, new Date());
     sqlRequest.input("SentAt", sql.DateTime2, timestamp);
