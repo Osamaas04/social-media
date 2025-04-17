@@ -51,7 +51,10 @@ export async function POST(request) {
       }
     }
 
-    const page = await Page.findOne({ page_id: recipientId });
+    const page = await Page.findOne({ "platform_data.facebook.page_id": recipientId });
+
+    console.log(page)
+    console.log(page.user_id)
 
     if (!page) {
       console.warn(
