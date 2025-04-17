@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { dbConnect } from "@/lib/mongo";
-import { Whats } from "@/model/whatsapp-model";
+import { SocialIntegrations } from "@/model/sociaIntegration-model";
 import sql from "mssql";
 import { getConnection } from "@/lib/sql";
 
@@ -57,7 +57,7 @@ export async function POST(request) {
       }
     }
 
-    const whats = await Whats.findOne({ whatsapp_business_account_id: wabaId });
+    const whats = await SocialIntegrations.findOne({ "platform_data.whatsapp.business_account_id": wabaId });
 
     if (!whats) {
       console.warn(
@@ -69,7 +69,7 @@ export async function POST(request) {
       );
     }
 
-    if (!whats.isActive) {
+    if (whats.platform_data.whatsapp.status === "inactive") {
       console.log(`Skipping message because WABA ${wabaId} is inactive.`);
       return NextResponse.json(
         { message: "WhatsApp is inactive, message ignored" },
@@ -92,15 +92,16 @@ export async function POST(request) {
     sqlRequest.input("CreateAt", sql.DateTime2, new Date());
     sqlRequest.input("SentAt", sql.DateTime2, timestamp);
     sqlRequest.input("Platform", sql.NVarChar(1), "W");
+    sqlRequest.input("UserId", sql.NVarChar(255), whats.user_id);
 
     await sqlRequest.query(`
               INSERT INTO Messages (
                 Id, SenderId, RecipientId, MessageId, Text, PageAccessToken, Wabald, 
-                Status, CreateAt, SentAt, Platform
+                Status, CreateAt, SentAt, Platform, UserId
               ) 
               VALUES (
                 NEWID(), @SenderId, @RecipientId, @MessageId, @Text, 
-                @PageAccessToken, @Wabald, @Status, @CreateAt, @SentAt, @Platform
+                @PageAccessToken, @Wabald, @Status, @CreateAt, @SentAt, @Platform, @UserId
               )
             `);
 

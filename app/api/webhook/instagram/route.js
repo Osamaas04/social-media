@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { dbConnect } from "@/lib/mongo";
-import { Insta } from "@/model/insta-model";
+import { SocialIntegrations } from "@/model/sociaIntegration-model";
 import sql from "mssql";
 import { getConnection } from "@/lib/sql";
 
@@ -51,7 +51,7 @@ export async function POST(request) {
       }
     }
 
-    const insta = await Insta.findOne({ instagram_id: recipientId });
+    const insta = await SocialIntegrations.findOne({ "platform_data.instagram.ig_business_id": recipientId });
 
     if (!insta) {
       console.warn(
@@ -63,7 +63,7 @@ export async function POST(request) {
       );
     }
 
-    if (!insta.isActive) {
+    if (insta.platform_data.instagram.status === "inactive") {
       console.log(
         `Skipping message from ${senderId} because Instagram ${recipientId} is inactive.`
       );
@@ -87,15 +87,16 @@ export async function POST(request) {
     sqlRequest.input("CreateAt", sql.DateTime2, new Date());
     sqlRequest.input("SentAt", sql.DateTime2, timestamp);
     sqlRequest.input("Platform", sql.NVarChar(1), "I");
+    sqlRequest.input("UserId", sql.NVarChar(255), insta.user_id);
 
     await sqlRequest.query(`
           INSERT INTO Messages (
             Id, SenderId, RecipientId, MessageId, Text, PageAccessToken, 
-            Status, CreateAt, SentAt, Platform
+            Status, CreateAt, SentAt, Platform, UserId
           ) 
           VALUES (
             NEWID(), @SenderId, @RecipientId, @MessageId, @Text, 
-            @PageAccessToken, @Status, @CreateAt, @SentAt, @Platform
+            @PageAccessToken, @Status, @CreateAt, @SentAt, @Platform, @UserId
           )
         `);
 
