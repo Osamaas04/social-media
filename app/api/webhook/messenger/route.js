@@ -96,7 +96,7 @@ export async function POST(request) {
       ) 
       VALUES (
         NEWID(), @SenderId, @RecipientId, @MessageId, @Text, 
-        @PageAccessToken, @Status, @CreateAt, @SentAt, @Platform, @User_Id
+        @PageAccessToken, @Status, @CreateAt, @SentAt, @Platform, @UserId
       )
     `);
 
