@@ -51,16 +51,7 @@ export async function POST(request) {
       }
     }
 
-    const user = await SocialIntegrations.findOne({ user_id: "4c3fd949-6af2-422e-aa3a-93a21f4517eb" });
-
-    console.log(user)
-
-    
     const page = await SocialIntegrations.findOne({ "platform_data.facebook.page_id": recipientId });
-    
-
-    console.log(page)
-    console.log(page.user_id)
 
     if (!page) {
       console.warn(
@@ -72,7 +63,7 @@ export async function POST(request) {
       );
     }
 
-    if (!page.isActive) {
+    if (page.platform_data.facebook.status === "inactive") {
       console.log(
         `Skipping message from ${senderId} because page ${recipientId} is inactive.`
       );
@@ -91,20 +82,21 @@ export async function POST(request) {
     sqlRequest.input("RecipientId", sql.NVarChar(255), recipientId);
     sqlRequest.input("MessageId", sql.NVarChar(255), messageId);
     sqlRequest.input("Text", sql.NVarChar(1000), message);
-    sqlRequest.input("PageAccessToken", sql.NVarChar(255), page.access_token);
+    sqlRequest.input("PageAccessToken", sql.NVarChar(255), page.token_info.page_access_token);
     sqlRequest.input("Status", sql.Int, 0); 
     sqlRequest.input("CreateAt", sql.DateTime2, new Date()); 
     sqlRequest.input("SentAt", sql.DateTime2, timestamp);
     sqlRequest.input("Platform", sql.NVarChar(1), "F"); 
+    sqlRequest.input("UserId", sql.NVarChar(255), page.user_id); 
 
     await sqlRequest.query(`
       INSERT INTO Messages (
         Id, SenderId, RecipientId, MessageId, Text, PageAccessToken, 
-        Status, CreateAt, SentAt, Platform
+        Status, CreateAt, SentAt, Platform, UserId
       ) 
       VALUES (
         NEWID(), @SenderId, @RecipientId, @MessageId, @Text, 
-        @PageAccessToken, @Status, @CreateAt, @SentAt, @Platform
+        @PageAccessToken, @Status, @CreateAt, @SentAt, @Platform, @User_Id
       )
     `);
 
