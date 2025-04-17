@@ -51,7 +51,13 @@ export async function POST(request) {
       }
     }
 
+    const user = await SocialIntegrations.findOne({ user_id: "4c3fd949-6af2-422e-aa3a-93a21f4517eb" });
+
+    console.log(user)
+
+    
     const page = await SocialIntegrations.findOne({ "platform_data.facebook.page_id": recipientId });
+    
 
     console.log(page)
     console.log(page.user_id)
