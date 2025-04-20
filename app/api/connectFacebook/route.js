@@ -6,12 +6,11 @@ import { getUserIdFromToken } from "@/utils/getUserIdFromToken";
 export async function POST(request) {
   try {
 
-    // const user_id = getUserIdFromToken(request)
+    const user_id = getUserIdFromToken(request)
+    
+    //  const user_id = request.headers.get("x-user-id")
 
-
-     const user_id = request.headers.get("x-user-id")
-
-     console.log("X-User-Id header:", request.headers.get("x-user-id"));
+    //  console.log("X-User-Id header:", request.headers.get("x-user-id"));
 
 
     const { code } = await request.json();
