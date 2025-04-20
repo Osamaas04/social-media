@@ -11,6 +11,7 @@ export async function POST(request) {
 
      const user_id = request.headers.get("X-User-Id")
 
+     console.log(user_id)
 
 
     const { code } = await request.json();
