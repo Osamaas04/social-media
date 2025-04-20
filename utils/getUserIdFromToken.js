@@ -1,15 +1,21 @@
-import { NextResponse } from "next/server";
+import jwt from 'jsonwebtoken';
 
 export const getUserIdFromToken = (request) => {
-    try {
-        const userId = request.headers.get('x-user-id');
+  const cookie = request.headers.get('cookie') || '';
+  const token = cookie
+    .split(';')
+    .find(c => c.trim().startsWith('token='))
+    ?.split('=')[1];
 
-        if (!userId) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-        }
+  if (!token) {
+    throw new Error('Unauthorized: No token');
+  }
 
-        return userId;
-    } catch (error) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
-    }
+  const decoded = jwt.decode(token);
+
+  if (!decoded || !decoded.sub) {
+    throw new Error('Unauthorized: Invalid token');
+  }
+
+  return decoded.sub;
 };
