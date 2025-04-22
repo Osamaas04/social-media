@@ -5,7 +5,6 @@ import { getUserIdFromToken } from "@/utils/getUserIdFromToken";
 
 export async function POST(request) {
   try {
-
     const user_id = getUserIdFromToken(request)
 
     await dbConnect();

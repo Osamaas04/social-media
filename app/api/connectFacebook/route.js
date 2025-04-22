@@ -5,12 +5,7 @@ import { getUserIdFromToken } from "@/utils/getUserIdFromToken";
 
 export async function POST(request) {
   try {
-
-    // const user_id = getUserIdFromToken(request)
-
-     const user_id = request.headers.get("x-user-id")
-
-     console.log("X-User-Id header:", request.headers.get("x-user-id"));
+    const user_id = getUserIdFromToken(request)
 
 
     const { code } = await request.json();
@@ -78,20 +73,20 @@ export async function POST(request) {
 
     const existingIntegration = await SocialIntegrations.findOne({ user_id });
 
-      if (existingIntegration && existingIntegration.platform_data.facebook.page_id === page_id) {
-        return NextResponse.json({ error: "Page already exists" }, { status: 400 });
-      }
+    if (existingIntegration && existingIntegration.platform_data.facebook.page_id === page_id) {
+      return NextResponse.json({ error: "Page already exists" }, { status: 400 });
+    }
 
-      existingIntegration.platform_data.facebook = {
-        page_name,
-        page_id,
-        connected_at: new Date(),
-      };
+    existingIntegration.platform_data.facebook = {
+      page_name,
+      page_id,
+      connected_at: new Date(),
+    };
 
-      existingIntegration.token_info = {
-        user_access_token: longLivedUserAccessToken,
-        page_access_token: access_token,
-      };
+    existingIntegration.token_info = {
+      user_access_token: longLivedUserAccessToken,
+      page_access_token: access_token,
+    };
 
     await existingIntegration.save();
 
