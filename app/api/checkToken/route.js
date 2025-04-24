@@ -17,18 +17,39 @@ export const POST = async (request) => {
 
     const platformData = await SocialIntegrations.findOne({ user_id });
 
-    if (platform === 'facebook' && platformData?.platform_data?.facebook?.page_id) {
-      return NextResponse.json({ isConnected: true });
+    if (!platformData) {
+      return NextResponse.json({ isConnected: false });
     }
-    if (platform === 'instagram' && platformData?.platform_data?.instagram?.ig_business_id) {
-      return NextResponse.json({ isConnected: true });
+
+    const { facebook, instagram, whatsapp } = platformData.platform_data || {};
+
+    if (platform === 'facebook' && facebook?.page_id) {
+      return NextResponse.json({
+        isConnected: true,
+        page_id: facebook.page_id,
+        page_name: facebook.page_name || "Facebook Page",
+      });
     }
-    if (platform === 'whatsapp' && platformData?.platform_data?.whatsapp?.business_account_id) {
-      return NextResponse.json({ isConnected: true });
+
+    if (platform === 'instagram' && instagram?.ig_business_id) {
+      return NextResponse.json({
+        isConnected: true,
+        page_id: instagram.ig_business_id,
+        page_name: instagram.username || "Instagram Account",
+      });
+    }
+
+    if (platform === 'whatsapp' && whatsapp?.business_account_id) {
+      return NextResponse.json({
+        isConnected: true,
+        page_id: whatsapp.business_account_id,
+        page_name: whatsapp.verified_name || "WhatsApp Business",
+      });
     }
 
     return NextResponse.json({ isConnected: false });
   } catch (error) {
+    console.error("CheckToken error:", error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 };
