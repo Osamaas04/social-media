@@ -17,13 +17,13 @@ export const POST = async (request) => {
 
     const platformData = await SocialIntegrations.findOne(user_id);
 
-    if (platform === 'facebook' && platformData?.token_info?.page_access_token) {
+    if (platform === 'facebook' && platformData?.facebook?.page_id) {
       return NextResponse.json({ isConnected: true });
     }
-    if (platform === 'instagram' && platformData?.token_info?.user_access_token) {
+    if (platform === 'instagram' && platformData?.instagram?.ig_business_id) {
       return NextResponse.json({ isConnected: true });
     }
-    if (platform === 'whatsapp' && platformData?.token_info?.user_access_token) {
+    if (platform === 'whatsapp' && platformData?.whatsapp?.business_account_id) {
       return NextResponse.json({ isConnected: true });
     }
 
