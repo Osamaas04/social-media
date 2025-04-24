@@ -36,14 +36,14 @@ export async function POST(request) {
 
     if (
       platformKey === "instagram" &&
-      !socialIntegration.platform_data.instagram?.instagram_id
+      !socialIntegration.platform_data.instagram?.ig_business_id
     ) {
       return NextResponse.json({ error: "Instagram ID not found" }, { status: 400 });
     }
 
     if (
       platformKey === "whatsapp" &&
-      !socialIntegration.platform_data.whatsapp?.whatsapp_id
+      !socialIntegration.platform_data.whatsapp?.business_account_id
     ) {
       return NextResponse.json({ error: "WhatsApp ID not found" }, { status: 400 });
     }
