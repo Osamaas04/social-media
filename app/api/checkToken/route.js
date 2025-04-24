@@ -15,15 +15,15 @@ export const POST = async (request) => {
 
     await dbConnect();
 
-    const platformData = await SocialIntegrations.findOne(user_id);
+    const platformData = await SocialIntegrations.findOne({ user_id });
 
-    if (platform === 'facebook' && platformData?.facebook?.page_id) {
+    if (platform === 'facebook' && platformData?.platform_data?.facebook?.page_id) {
       return NextResponse.json({ isConnected: true });
     }
-    if (platform === 'instagram' && platformData?.instagram?.ig_business_id) {
+    if (platform === 'instagram' && platformData?.platform_data?.instagram?.ig_business_id) {
       return NextResponse.json({ isConnected: true });
     }
-    if (platform === 'whatsapp' && platformData?.whatsapp?.business_account_id) {
+    if (platform === 'whatsapp' && platformData?.platform_data?.whatsapp?.business_account_id) {
       return NextResponse.json({ isConnected: true });
     }
 
