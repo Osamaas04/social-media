@@ -27,43 +27,42 @@ export async function POST(request) {
 
     const platformKey = platform.toLowerCase();
 
-    // Check for missing platform ID
     if (
       platformKey === "messenger" &&
       !socialIntegration.platform_data.facebook?.page_id
     ) {
-      return NextResponse.json(
-        { error: "Page ID not found" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Page ID not found" }, { status: 400 });
     }
 
     if (
       platformKey === "instagram" &&
       !socialIntegration.platform_data.instagram?.instagram_id
     ) {
-      return NextResponse.json(
-        { error: "Instagram ID not found" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Instagram ID not found" }, { status: 400 });
     }
 
     if (
       platformKey === "whatsapp" &&
       !socialIntegration.platform_data.whatsapp?.whatsapp_id
     ) {
-      return NextResponse.json(
-        { error: "WhatsApp ID not found" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "WhatsApp ID not found" }, { status: 400 });
     }
 
-    // Update the platform's status
-    const updateField = `platform_data.${platformKey}.status`;
-    await SocialIntegrations.updateOne(
-      { user_id },
-      { $set: { [updateField]: isActive ? "active" : "inactive" } }
-    );
+    const statusValue = isActive ? "active" : "inactive";
+
+    switch (platformKey) {
+      case "messenger":
+        socialIntegration.platform_data.facebook.status = statusValue;
+        break;
+      case "instagram":
+        socialIntegration.platform_data.instagram.status = statusValue;
+        break;
+      case "whatsapp":
+        socialIntegration.platform_data.whatsapp.status = statusValue;
+        break;
+    }
+
+    await socialIntegration.save();
 
     return NextResponse.json({ isActive }, { status: 200 });
   } catch (error) {
