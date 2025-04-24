@@ -1,32 +1,11 @@
 import { dbConnect } from "@/lib/mongo";
-import { SocialIntegrations } from "@/model/sociaIntegration-model"; 
+import { SocialIntegrations } from "@/model/sociaIntegration-model";
 import { getUserIdFromToken } from "@/utils/getUserIdFromToken";
 import { NextResponse } from "next/server";
 
 export async function POST(request) {
   try {
-    const body = await request.json();
-    const { isActive, platform, instagram_id, whatsapp_id, page_id } = body;
-    const user_id = getUserIdFromToken(request)
-
-    if (
-      !platform ||
-      (platform === "Messenger" && !page_id) ||
-      (platform === "Instagram" && !instagram_id) ||
-      (platform === "WhatsApp" && !whatsapp_id)
-    ) {
-      return NextResponse.json(
-        { error: "Missing required fields" },
-        { status: 400 }
-      );
-    }
-
-    if (typeof isActive !== "boolean") {
-      return NextResponse.json(
-        { error: "Invalid isActive value" },
-        { status: 400 }
-      );
-    }
+    const user_id = getUserIdFromToken(request);
 
     await dbConnect();
 
@@ -38,63 +17,22 @@ export async function POST(request) {
       );
     }
 
-    let updatedStatus;
     const platformData = socialIntegration.platform_data;
 
-    switch (platform) {
-      case "Messenger":
-        if (!platformData.facebook || platformData.facebook.page_id !== page_id) {
-          return NextResponse.json(
-            { error: "Page doesn't exist or mismatch" },
-            { status: 400 }
-          );
-        }
-        platformData.facebook.status = isActive ? "active" : "inactive";
-        await socialIntegration.save();
-        updatedStatus = platformData.facebook.status;
-        break;
+    const statuses = {
+      messenger:
+        platformData.facebook?.status === "active" ? true : false,
+      instagram:
+        platformData.instagram?.status === "active" ? true : false,
+      whatsapp:
+        platformData.whatsapp?.status === "active" ? true : false,
+      x: false, 
+    };
 
-      case "Instagram":
-        if (!platformData.instagram || platformData.instagram.ig_business_id !== instagram_id) {
-          return NextResponse.json(
-            { error: "Instagram account doesn't exist or mismatch" },
-            { status: 400 }
-          );
-        }
-        platformData.instagram.status = isActive ? "active" : "inactive";
-        await socialIntegration.save();
-        updatedStatus = platformData.instagram.status;
-        break;
-
-      case "WhatsApp":
-        if (!platformData.whatsapp || platformData.whatsapp.business_account_id !== whatsapp_id) {
-          return NextResponse.json(
-            { error: "WhatsApp account doesn't exist or mismatch" },
-            { status: 400 }
-          );
-        }
-        platformData.whatsapp.status = isActive ? "active" : "inactive";
-        await socialIntegration.save();
-        updatedStatus = platformData.whatsapp.status;
-        break;
-
-      default:
-        return NextResponse.json(
-          { error: "Invalid platform" },
-          { status: 400 }
-        );
-    }
-
-    return NextResponse.json(
-      {
-        message: "Activation status updated successfully",
-        isActive: isActive, 
-      },
-      { status: 200 }
-    );    
+    return NextResponse.json(statuses, { status: 200 });
   } catch (error) {
     return NextResponse.json(
-      { error: `Failed to update status: ${error.message}` },
+      { error: `Failed to fetch status: ${error.message}` },
       { status: 500 }
     );
   }
