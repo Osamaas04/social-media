@@ -48,6 +48,8 @@ const PlatformDataSchema = new Schema({
 
 const SocialIntegrationsSchema = new Schema({
     user_id: { type: String, required: true },
+    name: {type: String, required: true},
+    company_name: {type: String, required: true},
     token_info: { type: TokenInfoSchema, default: () => ({}) },
     platform_data: { type: PlatformDataSchema, default: () => ({}) },
 }, { timestamps: true });
