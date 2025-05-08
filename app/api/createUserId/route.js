@@ -5,7 +5,7 @@ import { SocialIntegrations } from "@/model/sociaIntegration-model";
 
 export async function POST(request) {
     try {
-        const { user_id, name, company_name } = await request.json();
+        const { user_id, name, company_name, email } = await request.json();
         if (!user_id) {
             return NextResponse.json(
                 { error: "Missing User ID" },
@@ -23,7 +23,7 @@ export async function POST(request) {
             );
         }
 
-        await createSocialIntegrations({ user_id, name, company_name })
+        await createSocialIntegrations({ user_id, name, company_name, email })
 
         return NextResponse.json(
             { message: "User has been created successfully" },
