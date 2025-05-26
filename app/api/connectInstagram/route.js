@@ -58,6 +58,7 @@ export async function POST(request) {
       {
         message: "Instagram account ID has been saved successfully",
         instagramId: instagram_id,
+        redirectUrl: "https://www.instagram.com/oauth/authorize?enable_fb_login=0&force_authentication=1&client_id=3464406843854023&redirect_uri=https://replix.space/dashboard?menu=Integrations&response_type=code&scope=instagram_business_basic%2Cinstagram_business_manage_messages%2Cinstagram_business_manage_comments%2Cinstagram_business_content_publish%2Cinstagram_business_manage_insights"
       },
       { status: 200 }
     );
