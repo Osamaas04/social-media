@@ -78,11 +78,10 @@ export async function POST(request) {
     );
 
     const userInfo = await userInfoResponse.json();
-    const firstName = userInfo.first_name || "";
-    const lastName = userInfo.last_name || "";
+    const fullName = `${userInfo.first_name || ""} ${userInfo.last_name || ""}`.trim();
     const profilePic = userInfo.profile_pic || "";
 
-    console.log(firstName,lastName,profilePic)
+    console.log(fullName)
 
     const pool = await getConnection();
     const sqlRequest = pool.request();
@@ -97,21 +96,19 @@ export async function POST(request) {
     sqlRequest.input("SentAt", sql.DateTime2, timestamp);
     sqlRequest.input("Platform", sql.NVarChar(1), "F");
     sqlRequest.input("UserId", sql.NVarChar(255), page.user_id);
-    sqlRequest.input("FirstName", sql.NVarChar(255), firstName);
-    sqlRequest.input("LastName", sql.NVarChar(255), lastName);
+    sqlRequest.input("FullName", sql.NVarChar(255), fullName);
     sqlRequest.input("ProfilePic", sql.NVarChar(1000), profilePic);
 
     await sqlRequest.query(`
       INSERT INTO Messages (
-        Id, SenderId, RecipientId, MessageId, Text, PageAccessToken, 
-        Status, CreateAt, SentAt, Platform, UserId,
-        FirstName, LastName, ProfilePic
-      ) 
-      VALUES (
-        NEWID(), @SenderId, @RecipientId, @MessageId, @Text, 
-        @PageAccessToken, @Status, @CreateAt, @SentAt, @Platform, @UserId,
-        @FirstName, @LastName, @ProfilePic
-      )
+          Id, SenderId, RecipientId, MessageId, Text, PageAccessToken, 
+          Status, CreateAt, SentAt, Platform, UserId,
+          FullName, ProfilePic
+      )  VALUES (
+          NEWID(), @SenderId, @RecipientId, @MessageId, @Text, 
+          @PageAccessToken, @Status, @CreateAt, @SentAt, @Platform, @UserId,
+          @FullName, @ProfilePic
+        )
     `);
 
     return NextResponse.json(
