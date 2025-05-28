@@ -54,6 +54,7 @@ export async function POST(request) {
         timestamp = new Date(
           parseInt(messageData.timestamp) * 1000
         ).toISOString();
+        fullName = messageData.profile?.name || "";
       }
     }
 
@@ -77,10 +78,26 @@ export async function POST(request) {
       );
     }
 
+    const defaultProfilePic = ""
+
     const pool = await getConnection();
     const sqlRequest = pool.request();
 
-    console.log(process.env.SQL_SERVER);
+    const casePrefix = "W";
+    const caseQuery = await sqlRequest.query(`
+      SELECT TOP 1 CaseNumber 
+      FROM Messages 
+      WHERE CaseNumber LIKE '${casePrefix}%' 
+      ORDER BY CreateAt DESC
+    `);
+
+    let nextCaseNumber = `${casePrefix}00001`;
+    if (caseQuery.recordset.length > 0) {
+      const lastCase = caseQuery.recordset[0].CaseNumber;
+      const lastNumber = parseInt(lastCase.slice(1), 10); 
+      const nextNumber = lastNumber + 1;
+      nextCaseNumber = `${casePrefix}${nextNumber.toString().padStart(5, "0")}`;
+    }
 
     sqlRequest.input("SenderId", sql.NVarChar(255), senderId);
     sqlRequest.input("RecipientId", sql.NVarChar(255), recipientId);
@@ -93,17 +110,22 @@ export async function POST(request) {
     sqlRequest.input("SentAt", sql.DateTime2, timestamp);
     sqlRequest.input("Platform", sql.NVarChar(1), "W");
     sqlRequest.input("UserId", sql.NVarChar(255), whats.user_id);
+    sqlRequest.input("FullName", sql.NVarChar(255), fullName);
+    sqlRequest.input("ProfilePic", sql.NVarChar(1000), defaultProfilePic);
+    sqlRequest.input("CaseNumber", sql.NVarChar(10), nextCaseNumber);
 
     await sqlRequest.query(`
-              INSERT INTO Messages (
-                Id, SenderId, RecipientId, MessageId, Text, PageAccessToken, Wabald, 
-                Status, CreateAt, SentAt, Platform, UserId
-              ) 
-              VALUES (
-                NEWID(), @SenderId, @RecipientId, @MessageId, @Text, 
-                @PageAccessToken, @Wabald, @Status, @CreateAt, @SentAt, @Platform, @UserId
-              )
-            `);
+      INSERT INTO Messages (
+        Id, SenderId, RecipientId, MessageId, Text, PageAccessToken, Wabald, 
+        Status, CreateAt, SentAt, Platform, UserId,
+        FullName, ProfilePic, CaseNumber
+      ) 
+      VALUES (
+        NEWID(), @SenderId, @RecipientId, @MessageId, @Text, 
+        @PageAccessToken, @Wabald, @Status, @CreateAt, @SentAt, @Platform, @UserId,
+        @FullName, @ProfilePic, @CaseNumber
+      )
+    `);
 
     return NextResponse.json(
       { message: "Message has been queued successfully" },

@@ -81,10 +81,26 @@ export async function POST(request) {
     const fullName = `${userInfo.first_name || ""} ${userInfo.last_name || ""}`.trim();
     const profilePic = userInfo.profile_pic || "";
 
-    console.log(fullName)
-
     const pool = await getConnection();
     const sqlRequest = pool.request();
+
+    const casePrefix = "F";
+    const caseQuery = await sqlRequest.query(`
+      SELECT TOP 1 CaseNumber 
+      FROM Messages 
+      WHERE CaseNumber LIKE '${casePrefix}%' 
+      ORDER BY CreateAt DESC
+    `);
+
+    let nextCaseNumber = `${casePrefix}00001`;
+
+    if (caseQuery.recordset.length > 0) {
+      const lastCase = caseQuery.recordset[0].CaseNumber;
+      const lastNumber = parseInt(lastCase.slice(1), 10);
+      const nextNumber = lastNumber + 1;
+      nextCaseNumber = `${casePrefix}${nextNumber.toString().padStart(5, "0")}`;
+    }
+
 
     sqlRequest.input("SenderId", sql.NVarChar(255), senderId);
     sqlRequest.input("RecipientId", sql.NVarChar(255), recipientId);
@@ -98,16 +114,18 @@ export async function POST(request) {
     sqlRequest.input("UserId", sql.NVarChar(255), page.user_id);
     sqlRequest.input("FullName", sql.NVarChar(255), fullName);
     sqlRequest.input("ProfilePic", sql.NVarChar(1000), profilePic);
+    sqlRequest.input("CaseNumber", sql.NVarChar(10), nextCaseNumber);
+
 
     await sqlRequest.query(`
       INSERT INTO Messages (
           Id, SenderId, RecipientId, MessageId, Text, PageAccessToken, 
           Status, CreateAt, SentAt, Platform, UserId,
-          FullName, ProfilePic
+          FullName, ProfilePic, CaseNumber
       )  VALUES (
           NEWID(), @SenderId, @RecipientId, @MessageId, @Text, 
           @PageAccessToken, @Status, @CreateAt, @SentAt, @Platform, @UserId,
-          @FullName, @ProfilePic
+          @FullName, @ProfilePic, @CaseNumber
         )
     `);
 
