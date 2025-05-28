@@ -113,7 +113,7 @@ export async function POST(request) {
     sqlRequest.input("Platform", sql.NVarChar(1), "F");
     sqlRequest.input("UserId", sql.NVarChar(255), page.user_id);
     sqlRequest.input("FullName", sql.NVarChar(255), fullName);
-    sqlRequest.input("ProfilePic", sql.NVarChar(1000), profilePic);
+    sqlRequest.input("ProfilePicture", sql.NVarChar(1000), profilePic);
     sqlRequest.input("CaseNumber", sql.NVarChar(10), nextCaseNumber);
 
 
@@ -121,11 +121,11 @@ export async function POST(request) {
       INSERT INTO Messages (
           Id, SenderId, RecipientId, MessageId, Text, PageAccessToken, 
           Status, CreateAt, SentAt, Platform, UserId,
-          FullName, ProfilePic, CaseNumber
+          FullName, ProfilePicture, CaseNumber
       )  VALUES (
           NEWID(), @SenderId, @RecipientId, @MessageId, @Text, 
           @PageAccessToken, @Status, @CreateAt, @SentAt, @Platform, @UserId,
-          @FullName, @ProfilePic, @CaseNumber
+          @FullName, @ProfilePicture, @CaseNumber
         )
     `);
 

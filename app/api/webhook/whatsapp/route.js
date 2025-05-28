@@ -111,19 +111,19 @@ export async function POST(request) {
     sqlRequest.input("Platform", sql.NVarChar(1), "W");
     sqlRequest.input("UserId", sql.NVarChar(255), whats.user_id);
     sqlRequest.input("FullName", sql.NVarChar(255), fullName);
-    sqlRequest.input("ProfilePic", sql.NVarChar(1000), defaultProfilePic);
+    sqlRequest.input("ProfilePicture", sql.NVarChar(1000), defaultProfilePic);
     sqlRequest.input("CaseNumber", sql.NVarChar(10), nextCaseNumber);
 
     await sqlRequest.query(`
       INSERT INTO Messages (
         Id, SenderId, RecipientId, MessageId, Text, PageAccessToken, Wabald, 
         Status, CreateAt, SentAt, Platform, UserId,
-        FullName, ProfilePic, CaseNumber
+        FullName, ProfilePicture, CaseNumber
       ) 
       VALUES (
         NEWID(), @SenderId, @RecipientId, @MessageId, @Text, 
         @PageAccessToken, @Wabald, @Status, @CreateAt, @SentAt, @Platform, @UserId,
-        @FullName, @ProfilePic, @CaseNumber
+        @FullName, @ProfilePicture, @CaseNumber
       )
     `);
 

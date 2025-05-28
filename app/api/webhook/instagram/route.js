@@ -112,19 +112,19 @@ export async function POST(request) {
     sqlRequest.input("Platform", sql.NVarChar(1), "I");
     sqlRequest.input("UserId", sql.NVarChar(255), insta.user_id);
     sqlRequest.input("FullName", sql.NVarChar(255), fullName);
-    sqlRequest.input("ProfilePic", sql.NVarChar(1000), profilePic);
+    sqlRequest.input("ProfilePicture", sql.NVarChar(1000), profilePic);
     sqlRequest.input("CaseNumber", sql.NVarChar(10), nextCaseNumber);
 
     await sqlRequest.query(`
       INSERT INTO Messages (
         Id, SenderId, RecipientId, MessageId, Text, PageAccessToken, 
         Status, CreateAt, SentAt, Platform, UserId,
-        FullName, ProfilePic, CaseNumber
+        FullName, ProfilePicture, CaseNumber
       ) 
       VALUES (
         NEWID(), @SenderId, @RecipientId, @MessageId, @Text, 
         @PageAccessToken, @Status, @CreateAt, @SentAt, @Platform, @UserId,
-        @FullName, @ProfilePic, @CaseNumber
+        @FullName, @ProfilePicture, @CaseNumber
       )
     `);
 
