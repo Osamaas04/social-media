@@ -41,10 +41,8 @@ export async function POST(request) {
 
     for (const entry of entries) {
       const messagingEvents = entry.messaging;
-      console.log("event:", messagingEvents)
 
       for (const event of messagingEvents) {
-        console.log("event:", event)
         message = event.message?.text || "";
         messageId = event.message?.mid;
         senderId = event.sender.id;
@@ -52,9 +50,6 @@ export async function POST(request) {
         timestamp = event.timestamp ? new Date(event.timestamp) : new Date();
       }
     }
-
-    console.log("entries:", entries)
-
 
     const page = await SocialIntegrations.findOne({ "platform_data.facebook.page_id": recipientId });
 
@@ -78,10 +73,19 @@ export async function POST(request) {
       );
     }
 
+    const userInfoResponse = await fetch(
+      `https://graph.facebook.com/${senderId}?fields=first_name,last_name,profile_pic&access_token=${page.token_info.page_access_token}`
+    );
+
+    const userInfo = await userInfoResponse.json();
+    const firstName = userInfo.first_name || "";
+    const lastName = userInfo.last_name || "";
+    const profilePic = userInfo.profile_pic || "";
+
+    console.log(firstName,lastName,profilePic)
+
     const pool = await getConnection();
     const sqlRequest = pool.request();
-
-    console.log(process.env.SQL_SERVER)
 
     sqlRequest.input("SenderId", sql.NVarChar(255), senderId);
     sqlRequest.input("RecipientId", sql.NVarChar(255), recipientId);
@@ -93,15 +97,20 @@ export async function POST(request) {
     sqlRequest.input("SentAt", sql.DateTime2, timestamp);
     sqlRequest.input("Platform", sql.NVarChar(1), "F");
     sqlRequest.input("UserId", sql.NVarChar(255), page.user_id);
+    sqlRequest.input("FirstName", sql.NVarChar(255), firstName);
+    sqlRequest.input("LastName", sql.NVarChar(255), lastName);
+    sqlRequest.input("ProfilePic", sql.NVarChar(1000), profilePic);
 
     await sqlRequest.query(`
       INSERT INTO Messages (
         Id, SenderId, RecipientId, MessageId, Text, PageAccessToken, 
-        Status, CreateAt, SentAt, Platform, UserId
+        Status, CreateAt, SentAt, Platform, UserId,
+        FirstName, LastName, ProfilePic
       ) 
       VALUES (
         NEWID(), @SenderId, @RecipientId, @MessageId, @Text, 
-        @PageAccessToken, @Status, @CreateAt, @SentAt, @Platform, @UserId
+        @PageAccessToken, @Status, @CreateAt, @SentAt, @Platform, @UserId,
+        @FirstName, @LastName, @ProfilePic
       )
     `);
 
