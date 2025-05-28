@@ -41,15 +41,20 @@ export async function POST(request) {
 
     for (const entry of entries) {
       const messagingEvents = entry.messaging;
+      console.log("event:", messagingEvents)
 
       for (const event of messagingEvents) {
+        console.log("event:", event)
         message = event.message?.text || "";
-        messageId = event.message?.mid; 
+        messageId = event.message?.mid;
         senderId = event.sender.id;
         recipientId = event.recipient.id;
         timestamp = event.timestamp ? new Date(event.timestamp) : new Date();
       }
     }
+
+    console.log("entries:", entries)
+
 
     const page = await SocialIntegrations.findOne({ "platform_data.facebook.page_id": recipientId });
 
@@ -83,11 +88,11 @@ export async function POST(request) {
     sqlRequest.input("MessageId", sql.NVarChar(255), messageId);
     sqlRequest.input("Text", sql.NVarChar(1000), message);
     sqlRequest.input("PageAccessToken", sql.NVarChar(255), page.token_info.page_access_token);
-    sqlRequest.input("Status", sql.Int, 0); 
-    sqlRequest.input("CreateAt", sql.DateTime2, new Date()); 
+    sqlRequest.input("Status", sql.Int, 0);
+    sqlRequest.input("CreateAt", sql.DateTime2, new Date());
     sqlRequest.input("SentAt", sql.DateTime2, timestamp);
-    sqlRequest.input("Platform", sql.NVarChar(1), "F"); 
-    sqlRequest.input("UserId", sql.NVarChar(255), page.user_id); 
+    sqlRequest.input("Platform", sql.NVarChar(1), "F");
+    sqlRequest.input("UserId", sql.NVarChar(255), page.user_id);
 
     await sqlRequest.query(`
       INSERT INTO Messages (
