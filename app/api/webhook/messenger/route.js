@@ -78,8 +78,11 @@ export async function POST(request) {
     );
 
     const userInfo = await userInfoResponse.json();
+    console.log(userInfo)
     const fullName = `${userInfo.first_name || ""} ${userInfo.last_name || ""}`.trim();
+    console.log(fullName)
     const profilePic = userInfo.profile_pic || "";
+    console.log(profilePic)
 
     const pool = await getConnection();
     const sqlRequest = pool.request();
